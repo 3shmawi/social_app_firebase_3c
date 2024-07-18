@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:social_3c/screens/_resources/assets_path/assets_manager.dart';
 import 'package:social_3c/screens/_resources/shared/navigation.dart';
-import 'package:social_3c/screens/layout/layout_view.dart';
+import 'package:social_3c/screens/auth/login_view.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -16,7 +16,7 @@ class _SplashPageState extends State<SplashPage> {
     // TODO: implement initState
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
-      toAndReplacement(context, const LayoutView());
+      toAndReplacement(context, const LoginView());
     });
   }
 

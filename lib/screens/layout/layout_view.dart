@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/controller/layout_ctrl.dart';
+import 'package:social_3c/screens/_resources/assets_path/icon_broken.dart';
 
 class LayoutView extends StatelessWidget {
   const LayoutView({super.key});
@@ -25,7 +26,7 @@ class LayoutView extends StatelessWidget {
               IconButton(
                 onPressed: () {},
                 icon: const Icon(
-                  Icons.search,
+                  IconBroken.search,
                 ),
               ),
             ],
@@ -40,19 +41,19 @@ class LayoutView extends StatelessWidget {
             onTap: (index) => cubit.changeIndex(index),
             items: const [
               BottomNavigationBarItem(
-                icon: Icon(Icons.home),
+                icon: Icon(IconBroken.home),
                 label: "Home",
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.chat),
+                icon: Icon(IconBroken.chat),
                 label: "Chat",
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.notification_important_outlined),
+                icon: Icon(IconBroken.notification),
                 label: "Notifications",
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.settings),
+                icon: Icon(IconBroken.setting),
                 label: "Settings",
               ),
             ],
