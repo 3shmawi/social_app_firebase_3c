@@ -5,7 +5,7 @@ abstract class AppToast {
   static success(String msg) => Fluttertoast.showToast(
         msg: msg,
         toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
+        gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 3,
         backgroundColor: Colors.green,
         textColor: Colors.white,
@@ -15,7 +15,7 @@ abstract class AppToast {
   static error(String msg) => Fluttertoast.showToast(
         msg: msg,
         toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
+        gravity: ToastGravity.BOTTOM,
         timeInSecForIosWeb: 3,
         backgroundColor: Colors.red,
         textColor: Colors.white,
@@ -25,9 +25,9 @@ abstract class AppToast {
   static warning(String msg) => Fluttertoast.showToast(
         msg: msg,
         toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
+        gravity: ToastGravity.TOP_RIGHT,
         timeInSecForIosWeb: 3,
-        backgroundColor: Colors.yellowAccent,
+        backgroundColor: Colors.deepOrange,
         webShowClose: true,
         textColor: Colors.white,
         fontSize: 16.0,
@@ -36,7 +36,7 @@ abstract class AppToast {
   static hint(String msg) => Fluttertoast.showToast(
         msg: msg,
         toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
+        gravity: ToastGravity.TOP_LEFT,
         timeInSecForIosWeb: 3,
         backgroundColor: Colors.blueAccent,
         textColor: Colors.white,

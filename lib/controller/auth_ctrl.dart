@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/app/constants.dart';
 import 'package:social_3c/model/user.dart';
 import 'package:social_3c/screens/_resources/shared/toast.dart';
+import 'package:social_3c/services/local_storage.dart';
 
 class AuthCtrl extends Cubit<AuthStates> {
   AuthCtrl() : super(AuthInitialState());
@@ -35,6 +36,7 @@ class AuthCtrl extends Cubit<AuthStates> {
       password: passwordCtrl.text,
     )
         .then((response) {
+      CacheHelper.saveData(key: "myId", value: response.user!.uid);
       getProfileData(response.user!.uid);
       AppToast.success("Logged in successfully");
     }).catchError((error) {
@@ -57,6 +59,8 @@ class AuthCtrl extends Cubit<AuthStates> {
         .doc(uid)
         .set(newUser.toJson())
         .then((response) {
+      CacheHelper.saveData(key: "myId", value: uid);
+
       myData = newUser;
       AppToast.success("Created new user successfully");
 
@@ -88,17 +92,23 @@ class AuthCtrl extends Cubit<AuthStates> {
     });
   }
 
-  void logout() {
-    emit(AuthLoadingState());
-    _authCtrl.signOut().then((response) {
+  Future<bool> logout() async {
+    return await _authCtrl.signOut().then((response) {
+      CacheHelper.removeData(key: "myId");
+
       AppToast.success("Logged out successfully");
-      emit(GetProfileDataSuccessState());
+      return true;
     }).catchError((error) {
       AppToast.error("Failed to log out $error");
-      emit(AuthFailureState());
+      return false;
     });
   }
 
+  _clearFormCtrl() {
+    userNameCtrl.clear();
+    emailCtrl.clear();
+    passwordCtrl.clear();
+  }
   //get profile data
 
   UserModel? myData;
@@ -108,6 +118,7 @@ class AuthCtrl extends Cubit<AuthStates> {
     _fireStore.collection('users').doc(uid).get().then((response) {
       if (response.exists) {
         myData = UserModel.fromMap(response.data()!);
+        _clearFormCtrl();
         emit(GetProfileDataSuccessState());
       } else {
         AppToast.warning("User not found");

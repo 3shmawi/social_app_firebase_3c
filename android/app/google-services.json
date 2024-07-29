@@ -1,40 +1,21 @@
 {
   "project_info": {
-    "project_number": "360287151468",
-    "project_id": "social-app-2403b",
-    "storage_bucket": "social-app-2403b.appspot.com"
+    "project_number": "771550474384",
+    "project_id": "c-social-71e3a",
+    "storage_bucket": "c-social-71e3a.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:360287151468:android:e5e62dfca28573d7213f49",
+        "mobilesdk_app_id": "1:771550474384:android:6fa091e305aae57099a815",
         "android_client_info": {
-          "package_name": "com.ashmawi.social"
+          "package_name": "com.ashmawi.social_3c"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyD_PAmQ9g5TaxgHKLZuObKtdGshdTKZduU"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": []
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:360287151468:android:9899e334401717e1213f49",
-        "android_client_info": {
-          "package_name": "com.example.social_app"
-        }
-      },
-      "oauth_client": [],
-      "api_key": [
-        {
-          "current_key": "AIzaSyD_PAmQ9g5TaxgHKLZuObKtdGshdTKZduU"
+          "current_key": "AIzaSyAmJ2p-RtehhymPRgBq2_Vr76b7c_Dw6FA"
         }
       ],
       "services": {

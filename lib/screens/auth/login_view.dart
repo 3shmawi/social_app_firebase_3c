@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/controller/auth_ctrl.dart';
+import 'package:social_3c/controller/layout_ctrl.dart';
 import 'package:social_3c/screens/_resources/shared/navigation.dart';
 import 'package:social_3c/screens/auth/sign_up_view.dart';
 
@@ -14,6 +15,7 @@ class LoginView extends StatelessWidget {
     return BlocConsumer<AuthCtrl, AuthStates>(
       listener: (context, state) {
         if (state is GetProfileDataSuccessState) {
+          context.read<LayoutCtrl>().changeIndex(0);
           toAndFinish(context, const LayoutView());
         }
       },
