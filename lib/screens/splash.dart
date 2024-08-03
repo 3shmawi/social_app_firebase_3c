@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_3c/controller/auth_ctrl.dart';
 import 'package:social_3c/screens/_resources/assets_path/assets_manager.dart';
 import 'package:social_3c/screens/_resources/shared/navigation.dart';
 import 'package:social_3c/screens/auth/login_view.dart';
+import 'package:social_3c/screens/layout/layout_view.dart';
+import 'package:social_3c/services/local_storage.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -11,12 +15,20 @@ class SplashPage extends StatefulWidget {
 }
 
 class _SplashPageState extends State<SplashPage> {
+  final String? uid = CacheHelper.getData(key: "myId");
+
   @override
   void initState() {
-    // TODO: implement initState
+    if (uid != null) {
+      context.read<AuthCtrl>().getProfileData(uid!);
+    }
     super.initState();
     Future.delayed(const Duration(seconds: 2), () {
-      toAndReplacement(context, const LoginView());
+      if (uid == null) {
+        toAndReplacement(context, const LoginView());
+      } else {
+        toAndReplacement(context, const LayoutView());
+      }
     });
   }
 

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_3c/controller/posts_ctrl.dart';
 import 'package:social_3c/screens/layout/home/widgets.dart';
 
 class HomeView extends StatelessWidget {
@@ -6,9 +8,14 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      itemBuilder: (context, index) => const PostCardItem(),
-      itemCount: 10,
+    return BlocBuilder<PostsCtrl, PostsStates>(
+      builder: (context, state) {
+        final cubit = context.read<PostsCtrl>();
+        return ListView.builder(
+          itemBuilder: (context, index) => PostCardItem(cubit.posts[index]),
+          itemCount: cubit.posts.length,
+        );
+      },
     );
   }
 }

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:social_3c/model/post.dart';
 
 import '../../_resources/assets_path/icon_broken.dart';
 
 class PostCardItem extends StatelessWidget {
-  const PostCardItem({super.key});
+  const PostCardItem(this.post, {super.key});
+
+  final PostModel post;
 
   @override
   Widget build(BuildContext context) {
@@ -17,14 +20,12 @@ class PostCardItem extends StatelessWidget {
           children: [
             Row(
               children: [
-                const CircleAvatar(
+                CircleAvatar(
                   radius: 27,
                   backgroundColor: Colors.green,
                   child: CircleAvatar(
                     radius: 25,
-                    backgroundImage: NetworkImage(
-                      'https://picsum.photos/150/150',
-                    ),
+                    backgroundImage: NetworkImage(post.user.imgUrl),
                   ),
                 ),
                 Expanded(
@@ -33,15 +34,15 @@ class PostCardItem extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          "<NAME>",
-                          style: TextStyle(
+                        Text(
+                          post.user.name,
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         Text(
-                          "1h .ago",
+                          post.createdAt.toString(),
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.grey.shade400,
@@ -55,22 +56,19 @@ class PostCardItem extends StatelessWidget {
               ],
             ),
             const Divider(color: Colors.green),
-            const Text(
-              "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed consectetur orci eget neque tincidunt, ac tristique felis sagittis. Integer volutpat, ex vel varius finibus, mauris mauris consectetur ex, id interdum justo ipsum eu lectus.",
-              style: TextStyle(fontSize: 16),
+            Text(
+              post.title,
+              style: const TextStyle(fontSize: 16),
             ),
-            //todo if there is an image
-            if (true) ...[
+            if (post.postImageUrl != null) ...[
               const SizedBox(height: 10),
               Container(
                 height: 200,
                 decoration: BoxDecoration(
                   border: Border.all(color: Colors.green),
                   borderRadius: BorderRadius.circular(10),
-                  image: const DecorationImage(
-                    image: NetworkImage(
-                      "https://picsum.photos/150/150",
-                    ),
+                  image: DecorationImage(
+                    image: NetworkImage(post.postImageUrl!),
                     fit: BoxFit.cover,
                   ),
                 ),

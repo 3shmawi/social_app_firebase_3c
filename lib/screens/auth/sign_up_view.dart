@@ -4,6 +4,7 @@ import 'package:social_3c/controller/auth_ctrl.dart';
 import 'package:social_3c/screens/_resources/shared/navigation.dart';
 import 'package:social_3c/screens/auth/login_view.dart';
 
+import '../../controller/layout_ctrl.dart';
 import '../layout/layout_view.dart';
 
 class SignUpView extends StatelessWidget {
@@ -14,6 +15,8 @@ class SignUpView extends StatelessWidget {
     return BlocConsumer<AuthCtrl, AuthStates>(
       listener: (context, state) {
         if (state is GetProfileDataSuccessState) {
+          context.read<LayoutCtrl>().changeIndex(0);
+
           toAndFinish(context, const LayoutView());
         }
       },
