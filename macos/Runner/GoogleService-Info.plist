@@ -3,17 +3,17 @@
 <plist version="1.0">
 <dict>
 	<key>API_KEY</key>
-	<string>AIzaSyC3UURgqnp_tFRt7U_L8xRvhvYUSLXplzI</string>
+	<string>AIzaSyCYFRE7K8PD8CRa8fKwemQwO4sZbzfc8Kc</string>
 	<key>GCM_SENDER_ID</key>
-	<string>360287151468</string>
+	<string>771550474384</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.ashmawi.social3c</string>
 	<key>PROJECT_ID</key>
-	<string>social-app-2403b</string>
+	<string>c-social-71e3a</string>
 	<key>STORAGE_BUCKET</key>
-	<string>social-app-2403b.appspot.com</string>
+	<string>c-social-71e3a.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -25,6 +25,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:360287151468:ios:73a67f6450320f0f213f49</string>
+	<string>1:771550474384:ios:9ec585d4cf37090d99a815</string>
 </dict>
 </plist>
