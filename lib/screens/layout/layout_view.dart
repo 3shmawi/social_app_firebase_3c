@@ -49,6 +49,10 @@ class LayoutView extends StatelessWidget {
                 label: "Chat",
               ),
               BottomNavigationBarItem(
+                icon: Icon(IconBroken.upload),
+                label: "___",
+              ),
+              BottomNavigationBarItem(
                 icon: Icon(IconBroken.notification),
                 label: "Notifications",
               ),
