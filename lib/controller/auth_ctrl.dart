@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/app/constants.dart';
 import 'package:social_3c/model/user.dart';
 import 'package:social_3c/screens/_resources/shared/toast.dart';
+import 'package:social_3c/services/local_storage.dart';
 
 class AuthCtrl extends Cubit<AuthStates> {
   AuthCtrl() : super(AuthInitialState());
@@ -35,6 +36,7 @@ class AuthCtrl extends Cubit<AuthStates> {
       password: passwordCtrl.text,
     )
         .then((response) {
+      CacheHelper.saveData(key: "myId", value: response.user!.uid);
       getProfileData(response.user!.uid);
       AppToast.success("Logged in successfully");
     }).catchError((error) {
@@ -59,6 +61,7 @@ class AuthCtrl extends Cubit<AuthStates> {
         .then((response) {
       myData = newUser;
       AppToast.success("Created new user successfully");
+      CacheHelper.saveData(key: "myId", value: uid);
 
       emit(GetProfileDataSuccessState());
     }).catchError((error) {
@@ -89,13 +92,13 @@ class AuthCtrl extends Cubit<AuthStates> {
   }
 
   void logout() {
-    emit(AuthLoadingState());
     _authCtrl.signOut().then((response) {
+      CacheHelper.removeData(key: "myId");
+
       AppToast.success("Logged out successfully");
-      emit(GetProfileDataSuccessState());
+      emit(LogoutState());
     }).catchError((error) {
       AppToast.error("Failed to log out $error");
-      emit(AuthFailureState());
     });
   }
 
@@ -136,3 +139,6 @@ class GetProfileDataSuccessState extends AuthStates {}
 class GetProfileDataFailureState extends AuthStates {}
 
 class ChangePasswordVisibilityState extends AuthStates {}
+
+//logout
+class LogoutState extends AuthStates {}

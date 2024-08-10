@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_3c/controller/layout_ctrl.dart';
+import 'package:social_3c/controller/post_ctrl.dart';
 import 'package:social_3c/model/post.dart';
+import 'package:social_3c/services/local_storage.dart';
 
 import '../../_resources/assets_path/icon_broken.dart';
 
@@ -10,6 +14,7 @@ class PostCardItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final myId = CacheHelper.getData(key: "myId");
     return Card(
       elevation: 5,
       margin: const EdgeInsets.all(10),
@@ -54,13 +59,16 @@ class PostCardItem extends StatelessWidget {
                     ),
                   ),
                 ),
-                _buildPopupMenuButton(),
+                if (post.user.id == myId) _buildPopupMenuButton(context),
               ],
             ),
             const Divider(color: Colors.green),
-            Text(
-              post.content,
-              style: const TextStyle(fontSize: 16),
+            Align(
+              alignment: Alignment.topLeft,
+              child: Text(
+                post.content,
+                style: const TextStyle(fontSize: 16),
+              ),
             ),
             if (post.mediaUrl != null) ...[
               const SizedBox(height: 10),
@@ -106,13 +114,20 @@ class PostCardItem extends StatelessWidget {
     );
   }
 
-  PopupMenuButton<int> _buildPopupMenuButton() {
+  PopupMenuButton<int> _buildPopupMenuButton(BuildContext context) {
     return PopupMenuButton(
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
       ),
       icon: const Icon(IconBroken.moreSquare),
-      onSelected: (index) {},
+      onSelected: (index) {
+        if (index == 0) {
+          context.read<PostCtrl>().enableEdit(post);
+          context.read<LayoutCtrl>().changeIndex(2);
+        } else if (index == 1) {
+          context.read<PostCtrl>().deletePost(post.postId);
+        }
+      },
       itemBuilder: (context) => [
         PopupMenuItem(
           value: 0,

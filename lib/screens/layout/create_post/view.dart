@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/controller/auth_ctrl.dart';
+import 'package:social_3c/controller/layout_ctrl.dart';
 import 'package:social_3c/controller/post_ctrl.dart';
 import 'package:social_3c/screens/_resources/assets_path/icon_broken.dart';
 import 'package:social_3c/screens/_resources/shared/toast.dart';
@@ -14,7 +15,9 @@ class CreatePostView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocConsumer<PostCtrl, PostStates>(
       listener: (context, state) {
-        // TODO: implement listener
+        if (state is GetPostsSuccessState) {
+          context.read<LayoutCtrl>().changeIndex(0);
+        }
       },
       builder: (context, state) {
         final cubit = context.read<PostCtrl>();
@@ -53,14 +56,19 @@ class CreatePostView extends StatelessWidget {
                                 ),
                               ),
                             )
-                          : null,
+                          : cubit.imgUrl != null
+                              ? DecorationImage(
+                                  fit: BoxFit.cover,
+                                  image: NetworkImage(cubit.imgUrl!),
+                                )
+                              : null,
                       border: Border.all(
                         color: Colors.grey,
                         width: 1,
                       ),
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: cubit.selectedMedia == null
+                    child: cubit.selectedMedia == null && cubit.imgUrl == null
                         ? const Center(
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -82,17 +90,34 @@ class CreatePostView extends StatelessWidget {
                           )
                         : null,
                   ),
-                  CircleAvatar(
-                    backgroundColor: Colors.black38,
-                    child: IconButton(
-                      onPressed: () {
-                        cubit.pickMedia();
-                      },
-                      icon: const Icon(
-                        Icons.photo_camera,
-                        color: Colors.white,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: Colors.black38,
+                        child: IconButton(
+                          onPressed: () {
+                            cubit.pickMedia();
+                          },
+                          icon: const Icon(
+                            Icons.photo_camera,
+                            color: Colors.white,
+                          ),
+                        ),
                       ),
-                    ),
+                      CircleAvatar(
+                        backgroundColor: Colors.black38,
+                        child: IconButton(
+                          onPressed: () {
+                            cubit.clearMedia();
+                          },
+                          icon: const Icon(
+                            Icons.close,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -114,10 +139,10 @@ class CreatePostView extends StatelessWidget {
                         if (user == null) {
                           AppToast.error("You must login to create a new post");
                         } else {
-                          cubit.createPost(user);
+                          cubit.createOrEditPost(user);
                         }
                       },
-                child: const Text('CREATE'),
+                child: Text(cubit.post == null ? 'CREATE' : "EDIT"),
               ),
               if (state is CreatePostLoadingState)
                 const Padding(

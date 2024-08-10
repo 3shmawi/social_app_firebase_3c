@@ -17,7 +17,17 @@ class PostCtrl extends Cubit<PostStates> {
   final _fireStore = FirebaseFirestore.instance;
   final _storage = FirebaseStorage.instance;
   final contentCtrl = TextEditingController();
+  String? imgUrl;
+
   XFile? selectedMedia;
+
+  void createOrEditPost(UserModel user) {
+    if (post == null) {
+      createPost(user);
+    } else {
+      editPost();
+    }
+  }
 
   void createPost(UserModel user) async {
     if (contentCtrl.text.isEmpty) {
@@ -25,8 +35,6 @@ class PostCtrl extends Cubit<PostStates> {
       return;
     }
     emit(CreatePostLoadingState());
-
-    String? imgUrl;
 
     if (selectedMedia != null) {
       imgUrl = await _uploadMediaToGetDownloadUrl(File(selectedMedia!.path));
@@ -50,6 +58,7 @@ class PostCtrl extends Cubit<PostStates> {
       getPosts();
       contentCtrl.clear();
       selectedMedia = null;
+      imgUrl = null;
     }).catchError((error) {
       AppToast.error("Error creating post: ${error.message}");
       emit(CreatePostErrorState());
@@ -71,6 +80,12 @@ class PostCtrl extends Cubit<PostStates> {
     emit(PickMediaState());
   }
 
+  void clearMedia() {
+    selectedMedia = null;
+    imgUrl = null;
+    emit(PickMediaState());
+  }
+
   List<PostModel> posts = [];
 
   void getPosts() {
@@ -88,6 +103,71 @@ class PostCtrl extends Cubit<PostStates> {
       AppToast.error("Error getting posts: ${error.message}");
       emit(GetPostsErrorState());
     });
+  }
+
+  //edit and delete
+  void deletePost(String postId) async {
+    emit(DeletePostLoadingState());
+    _fireStore.collection("MYM_Posts").doc(postId).delete().then((value) {
+      AppToast.success("Post deleted successfully");
+      getPosts();
+    }).catchError((error) {
+      AppToast.error("Error deleting post: ${error.message}");
+      emit(DeletePostErrorState());
+    });
+  }
+
+  void editPost() async {
+    if (contentCtrl.text.isEmpty) {
+      AppToast.error("You should write anything first");
+      return;
+    }
+    emit(CreatePostLoadingState());
+
+    if (selectedMedia != null) {
+      imgUrl = await _uploadMediaToGetDownloadUrl(File(selectedMedia!.path));
+    }
+    final updatedPost = PostModel(
+      postId: post!.postId,
+      createdAt: post!.createdAt,
+      updatedAt: DateTime.now(),
+      content: contentCtrl.text,
+      user: post!.user,
+      mediaUrl: imgUrl,
+    );
+    _fireStore
+        .collection("MYM_Posts")
+        .doc(post!.postId)
+        .update(updatedPost.toMap())
+        .then((value) {
+          AppToast.success("Post updated successfully");
+          getPosts();
+          contentCtrl.clear();
+          selectedMedia = null;
+          imgUrl = null;
+          post = null;
+        })
+        .catchError((error) {})
+        .catchError((error) {
+          AppToast.error("Error updating post: ${error.message}");
+          emit(CreatePostErrorState());
+        });
+  }
+
+  PostModel? post;
+
+  void enableEdit(PostModel post) {
+    this.post = post;
+    contentCtrl.text = post.content;
+    imgUrl = post.mediaUrl;
+    emit(EditPostState());
+  }
+
+  void clearDate() {
+    contentCtrl.clear();
+    imgUrl = null;
+    post = null;
+    emit(EditPostState());
   }
 }
 
@@ -108,3 +188,11 @@ class GetPostsSuccessState extends PostStates {}
 class GetPostsErrorState extends PostStates {}
 
 class PickMediaState extends PostStates {}
+
+//
+class DeletePostLoadingState extends PostStates {}
+
+class DeletePostErrorState extends PostStates {}
+
+//
+class EditPostState extends PostStates {}

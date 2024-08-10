@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/controller/layout_ctrl.dart';
+import 'package:social_3c/controller/post_ctrl.dart';
 import 'package:social_3c/screens/_resources/assets_path/icon_broken.dart';
 
 class LayoutView extends StatelessWidget {
@@ -38,7 +39,10 @@ class LayoutView extends StatelessWidget {
             unselectedItemColor: Colors.grey,
             backgroundColor: Colors.white,
             currentIndex: cubit.currentIndex,
-            onTap: (index) => cubit.changeIndex(index),
+            onTap: (index) {
+              context.read<PostCtrl>().clearDate();
+              cubit.changeIndex(index);
+            },
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(IconBroken.home),
