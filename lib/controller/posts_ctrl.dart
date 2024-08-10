@@ -40,7 +40,7 @@ class PostsCtrl extends Cubit<PostsStates> {
     );
 
     _fireStore
-        .collection("posts")
+        .collection("Patrick_posts")
         .doc(newId)
         .set(postItem.toMap())
         .then((value) {
@@ -82,7 +82,7 @@ class PostsCtrl extends Cubit<PostsStates> {
   void fetchPosts() async {
     emit(GetPostLoadingState());
     try {
-      final querySnapshot = await _fireStore.collection("posts").get();
+      final querySnapshot = await _fireStore.collection("Patrick_posts").get();
       posts = querySnapshot.docs
           .map((doc) => PostModel.fromMap(doc.data()))
           .toList();
