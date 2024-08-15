@@ -38,10 +38,11 @@ class ChatItem extends StatelessWidget {
                 lastMessage,
                 maxLines: isOpened == null ? 1 : 2,
                 overflow: TextOverflow.ellipsis,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelMedium!
-                    .copyWith(fontSize: 16),
+                style: Theme.of(context).textTheme.labelMedium!.copyWith(
+                      fontSize: 16,
+                      color: Colors.grey,
+                      fontWeight: FontWeight.w300,
+                    ),
               ),
             ),
             Text(
@@ -50,13 +51,15 @@ class ChatItem extends StatelessWidget {
             ),
           ],
         ),
-        title: Text(name,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: Theme.of(context)
-                .textTheme
-                .displayMedium!
-                .copyWith(fontSize: 20)),
+        title: Text(
+          name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.displayMedium!.copyWith(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
         leading: CircleAvatar(
           radius: 40,
           backgroundColor: Colors.grey,
