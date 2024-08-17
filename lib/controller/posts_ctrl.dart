@@ -17,9 +17,19 @@ class PostsCtrl extends Cubit<PostsStates> {
 
   final titleCtrl = TextEditingController();
   XFile? image;
-  final ImagePicker _picker = ImagePicker();
+  String? imageUrl;
 
-  void createPost(UserModel user) async {
+  final _picker = ImagePicker();
+
+  void newOrEditPost(UserModel user) {
+    if (editedPost == null) {
+      _createPost(user);
+    } else {
+      _editPost(user);
+    }
+  }
+
+  void _createPost(UserModel user) async {
     if (titleCtrl.text.isEmpty) {
       AppToast.error("Please enter a post content");
       return;
@@ -32,6 +42,7 @@ class PostsCtrl extends Cubit<PostsStates> {
     }
     final postItem = PostModel(
       postId: newId,
+      editCount: 0,
       createdAt: Timestamp.now(),
       updatedAt: Timestamp.now(),
       postImageUrl: imageUrl,
@@ -45,11 +56,52 @@ class PostsCtrl extends Cubit<PostsStates> {
         .set(postItem.toMap())
         .then((value) {
       AppToast.success("Crate post successfully");
+      imageUrl = null;
 
       titleCtrl.clear();
       image = null;
       fetchPosts();
-      emit(UploadPostSuccessState());
+    }).catchError((error) {
+      AppToast.error("Failed to create post");
+      emit(UploadPostErrorState());
+    });
+  }
+
+  void _editPost(UserModel user) async {
+    if (editedPost!.editCount > 3) {
+      AppToast.error("You can't edit this post anymore");
+      return;
+    }
+    if (titleCtrl.text.isEmpty) {
+      AppToast.error("Please enter a post content");
+      return;
+    }
+    emit(UploadPostLoadingState());
+    if (image != null) {
+      imageUrl = await _uploadImageAndGetUrl(File(image!.path));
+    }
+    final postItem = PostModel(
+      postId: editedPost!.postId,
+      createdAt: editedPost!.createdAt,
+      editCount: editedPost!.editCount + 1,
+      updatedAt: Timestamp.now(),
+      postImageUrl: imageUrl,
+      title: titleCtrl.text,
+      user: user,
+    );
+
+    _fireStore
+        .collection("Patrick_posts")
+        .doc(editedPost!.postId)
+        .update(postItem.toMap())
+        .then((value) {
+      AppToast.success("Crate post successfully");
+
+      editedPost = null;
+      imageUrl = null;
+      titleCtrl.clear();
+      image = null;
+      fetchPosts();
     }).catchError((error) {
       AppToast.error("Failed to create post");
       emit(UploadPostErrorState());
@@ -82,7 +134,13 @@ class PostsCtrl extends Cubit<PostsStates> {
   void fetchPosts() async {
     emit(GetPostLoadingState());
     try {
-      final querySnapshot = await _fireStore.collection("Patrick_posts").get();
+      final querySnapshot = await _fireStore
+          .collection("Patrick_posts")
+          .orderBy(
+            "updatedAt",
+            descending: true,
+          )
+          .get();
       posts = querySnapshot.docs
           .map((doc) => PostModel.fromMap(doc.data()))
           .toList();
@@ -91,6 +149,24 @@ class PostsCtrl extends Cubit<PostsStates> {
       AppToast.error("Failed to fetch posts");
       emit(GetPostErrorState());
     }
+  }
+
+  void deletePost(String postId) {
+    _fireStore.collection("Patrick_posts").doc(postId).delete().then((value) {
+      AppToast.success("Post deleted successfully");
+      fetchPosts();
+    }).catchError((error) {
+      AppToast.error("Failed to delete post");
+    });
+  }
+
+  PostModel? editedPost;
+
+  void editPost(PostModel post) {
+    editedPost = post;
+    titleCtrl.text = post.title;
+    imageUrl = post.postImageUrl;
+    emit(EditPostState());
   }
 }
 
@@ -111,3 +187,5 @@ final class GetPostLoadingState extends PostsStates {}
 final class GetPostSuccessState extends PostsStates {}
 
 final class GetPostErrorState extends PostsStates {}
+
+final class EditPostState extends PostsStates {}

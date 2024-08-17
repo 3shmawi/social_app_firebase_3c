@@ -8,6 +8,7 @@ class PostModel {
   final String? postImageUrl;
   final String title;
   final UserModel user;
+  final int editCount;
 
   PostModel({
     required this.postId,
@@ -16,6 +17,7 @@ class PostModel {
     this.postImageUrl,
     required this.title,
     required this.user,
+    required this.editCount,
   });
 
   Map<String, dynamic> toMap() {
@@ -25,6 +27,7 @@ class PostModel {
       'updatedAt': updatedAt,
       'postImageUrl': postImageUrl,
       'title': title,
+      'editCount': editCount,
       'user': user.toJson(),
     };
   }
@@ -36,6 +39,7 @@ class PostModel {
       updatedAt: json['updatedAt'],
       postImageUrl: json['postImageUrl'],
       title: json['title'],
+      editCount: json['editCount'],
       user: UserModel.fromMap(json['user']),
     );
   }

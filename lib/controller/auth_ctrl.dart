@@ -96,6 +96,18 @@ class AuthCtrl extends Cubit<AuthStates> {
     return await _authCtrl.signOut();
   }
 
+  void clearLogoutData() {
+    myData = null;
+    CacheHelper.removeData(key: "myId");
+    isPassword = false;
+    userNameCtrl.clear();
+    emailCtrl.clear();
+    passwordCtrl.clear();
+    AppToast.success("Logged out successfully");
+
+    emit(LogoutSuccessState());
+  }
+
   //get profile data
 
   UserModel? myData;
@@ -133,3 +145,5 @@ class GetProfileDataSuccessState extends AuthStates {}
 class GetProfileDataFailureState extends AuthStates {}
 
 class ChangePasswordVisibilityState extends AuthStates {}
+
+class LogoutSuccessState extends AuthStates {}

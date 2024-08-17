@@ -5,6 +5,7 @@ import 'package:social_3c/screens/_resources/shared/navigation.dart';
 import 'package:social_3c/screens/layout/chat/details.dart';
 import 'package:social_3c/screens/layout/chat/widgets.dart';
 
+import '../../../model/chat.dart';
 import '../../_resources/assets_path/icon_broken.dart';
 
 class ChatView extends StatelessWidget {
@@ -12,112 +13,82 @@ class ChatView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChatCtrl, ChatStates>(
-      builder: (context, state) {
-        if (state is GetUsersLoadingState) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(
-                  color: Colors.green,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Loading users...',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-        if (state is GetUsersFailureState) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.error_outline,
-                  color: Colors.red,
-                  size: 150,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'Error while fetching users',
-                  style: TextStyle(fontSize: 18, color: Colors.red),
-                ),
-              ],
-            ),
-          );
-        }
+    return Scaffold(
+      body: BlocBuilder<ChatCtrl, ChatStates>(
+        builder: (context, state) {
+          final cubit = context.read<ChatCtrl>();
 
-        final cubit = context.read<ChatCtrl>();
-        if (cubit.myUsers.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  IconBroken.category,
-                  color: Colors.grey,
-                  size: 150,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'There is no users now!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
-                ),
-                OutlinedButton(
-                  onPressed: () {
-                    cubit.getAllUsers();
-                    _allUsersBottomSheet(context);
-                  },
-                  child: const Text("Connect to one"),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return RefreshIndicator(
-          onRefresh: () async => cubit.getMyUsers(),
-          child: Column(
-            children: [
-              Expanded(
-                child: ListView.builder(
+          return StreamBuilder<List<UserChatModel>>(
+            stream: cubit.getMyUsers(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.active) {
+                final users = snapshot.data;
+                if (users == null || users.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          IconBroken.category,
+                          color: Colors.grey,
+                          size: 150,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'There is no users now!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 18, color: Colors.grey),
+                        ),
+                        Text("Connect to one")
+                      ],
+                    ),
+                  );
+                }
+                return ListView.builder(
                   padding: const EdgeInsets.all(10),
                   itemBuilder: (context, index) {
                     return ChatItem(
-                      img: cubit.myUsers[index].user.imgUrl,
-                      name: cubit.myUsers[index].user.name,
-                      lastMessage: cubit.myUsers[index].lastMessage,
-                      date: cubit.myUsers[index].lastMessageDateTime.toString(),
+                      img: users[index].user.imgUrl,
+                      name: users[index].user.name,
+                      lastMessage: users[index].lastMessage,
+                      date: users[index].lastMessageDateTime.toString(),
                       onTap: () {
-                        cubit.getUserChat(cubit.myUsers[index].user.id);
-
-                        toPage(context,
-                            ChatDetailsView(cubit.myUsers[index].user));
+                        toPage(context, ChatDetailsView(users[index].user));
                       },
                     );
                   },
                   itemCount: cubit.myUsers.length,
+                );
+              }
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: Colors.green,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      'Loading users...',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  cubit.getAllUsers();
-                  _allUsersBottomSheet(context);
-                },
-                child: const Text("New Chat"),
-              ),
-            ],
-          ),
-        );
-      },
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          context.read<ChatCtrl>().getAllUsers();
+          _allUsersBottomSheet(context);
+        },
+        child: const Icon(Icons.people, color: Colors.white, size: 32),
+      ),
     );
   }
 
@@ -199,7 +170,6 @@ class ChatView extends StatelessWidget {
                     lastMessage: "Start a new chat",
                     date: DateTime.now().toString(),
                     onTap: () {
-                      cubit.getUserChat(cubit.allUsers[index].id);
                       Navigator.of(context).pop();
                       toPage(context, ChatDetailsView(cubit.allUsers[index]));
                     },

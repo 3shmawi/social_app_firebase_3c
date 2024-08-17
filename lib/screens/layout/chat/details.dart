@@ -7,6 +7,8 @@ import 'package:social_3c/screens/_resources/assets_path/icon_broken.dart';
 import 'package:social_3c/screens/_resources/shared/toast.dart';
 import 'package:social_3c/screens/layout/chat/widgets.dart';
 
+import '../../../model/chat.dart';
+
 class ChatDetailsView extends StatelessWidget {
   const ChatDetailsView(this.receiver, {super.key});
 
@@ -48,85 +50,73 @@ class ChatDetailsView extends StatelessWidget {
           Expanded(
             child: BlocBuilder<ChatCtrl, ChatStates>(
               builder: (context, state) {
-                if (state is GetUserChatLoadingState) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        CircularProgressIndicator(
-                          color: Colors.green,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Loading messages...',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-                if (state is GetUserChatFailureState) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 150,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Error while fetching messages',
-                          style: TextStyle(fontSize: 18, color: Colors.red),
-                        ),
-                      ],
-                    ),
-                  );
-                }
-
                 final cubit = context.read<ChatCtrl>();
-                if (cubit.chats.isEmpty) {
-                  return const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          IconBroken.category,
-                          color: Colors.grey,
-                          size: 150,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'There is no messages now,\nwrite a message',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 18, color: Colors.grey),
-                        ),
-                      ],
-                    ),
-                  );
-                }
 
-                return Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: ListView.builder(
-                    itemBuilder: (context, index) {
-                      if (receiver == cubit.chats[index].receiver) {
-                        return LeftMessage(
-                          cubit.chats[index].message,
-                          DateTime.parse(cubit.chats[index].dateTime),
+                return StreamBuilder<List<MessageModel>>(
+                  stream: cubit.getUserChat(receiver.id),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.active) {
+                      final messages = snapshot.data;
+
+                      if (messages == null || messages.isEmpty) {
+                        return const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                IconBroken.category,
+                                color: Colors.grey,
+                                size: 150,
+                              ),
+                              SizedBox(height: 16),
+                              Text(
+                                'There is no messages now,\nwrite a message',
+                                textAlign: TextAlign.center,
+                                style:
+                                    TextStyle(fontSize: 18, color: Colors.grey),
+                              ),
+                            ],
+                          ),
                         );
                       }
-                      return RightMessage(
-                        cubit.chats[index].message,
-                        DateTime.parse(cubit.chats[index].dateTime),
+                      return Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: ListView.builder(
+                          itemBuilder: (context, index) {
+                            if (sender!.id == messages[index].sender.id) {
+                              return RightMessage(
+                                messages[index].message,
+                                DateTime.parse(messages[index].dateTime),
+                              );
+                            }
+                            return LeftMessage(
+                              messages[index].message,
+                              DateTime.parse(messages[index].dateTime),
+                            );
+                          },
+                          itemCount: messages.length,
+                        ),
                       );
-                    },
-                    itemCount: cubit.chats.length,
-                  ),
+                    }
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(
+                            color: Colors.green,
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'Loading messages...',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             ),

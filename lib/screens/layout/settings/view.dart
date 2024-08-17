@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/controller/auth_ctrl.dart';
 import 'package:social_3c/screens/_resources/shared/navigation.dart';
 import 'package:social_3c/screens/auth/login_view.dart';
-import 'package:social_3c/services/local_storage.dart';
 
 import '../../_resources/shared/toast.dart';
 
@@ -25,8 +24,7 @@ class SettingsView extends StatelessWidget {
               TextButton(
                 onPressed: () {
                   cubit.logout().then((value) {
-                    AppToast.success("Logged out successfully");
-                    CacheHelper.removeData(key: "myId");
+                    cubit.clearLogoutData();
                     toAndFinish(context, const LoginView());
                   }).catchError((error) {
                     AppToast.error("Failed to log out");

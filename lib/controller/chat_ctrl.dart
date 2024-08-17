@@ -32,39 +32,32 @@ class ChatCtrl extends Cubit<ChatStates> {
 
   List<UserChatModel> myUsers = [];
 
-  void getMyUsers() {
-    emit(GetUsersLoadingState());
-
-    _fireStore
+  Stream<List<UserChatModel>> getMyUsers() {
+    return _fireStore
         .collection('Patrick_Users')
-        .orderBy("lastMessageDateTime", descending: false)
+        .doc(_currentUser!.uid)
+        .collection("users")
+        .orderBy("lastMessageDateTime", descending: true)
         .snapshots()
-        .listen((snapshots) {
-      myUsers.clear();
-      for (var doc in snapshots.docs) {
-        if (_currentUser?.uid == doc.id) continue;
-        myUsers.add(UserChatModel.fromJson(doc.data()));
-      }
-      emit(GetUsersSuccessState());
+        .map((querySnapshot) {
+      return querySnapshot.docs.map((doc) {
+        return UserChatModel.fromJson(doc.data());
+      }).toList();
     });
   }
 
-  List<MessageModel> chats = [];
-
-  void getUserChat(String userId) {
-    emit(GetUserChatLoadingState());
-
-    _fireStore
+  Stream<List<MessageModel>> getUserChat(String userId) {
+    return _fireStore
         .collection("Patrick_Users")
+        .doc(_currentUser!.uid)
+        .collection("users")
         .doc(userId)
         .collection("messages")
         .snapshots()
-        .listen((snapshot) {
-      chats.clear();
-      for (var doc in snapshot.docs) {
-        chats.add(MessageModel.fromJson(doc.data()));
-      }
-      emit(GetUserChatSuccessState());
+        .map((snapshot) {
+      return snapshot.docs.map((doc) {
+        return MessageModel.fromJson(doc.data());
+      }).toList();
     });
   }
 
@@ -88,39 +81,53 @@ class ChatCtrl extends Cubit<ChatStates> {
       messageId: dateNow,
       dateTime: dateNow,
     );
-    await _fireStore.collection("Patrick_Users").doc(sender.id).set(
-        UserChatModel(
-          lastMessage: message.message,
-          lastMessageDateTime: dateNow,
-          user: sender,
-        ).toJson(),
-        SetOptions(
-          merge: true,
-        ));
-    await _fireStore.collection("Patrick_Users").doc(receiver.id).set(
-        UserChatModel(
-          lastMessage: message.message,
-          lastMessageDateTime: dateNow,
-          user: receiver,
-        ).toJson(),
-        SetOptions(
-          merge: true,
-        ));
-
-    // await _fireStore
-    //     .collection("Patrick_Users")
-    //     .doc(sender.id)
-    //     .collection("messages")
-    //     .doc(dateNow)
-    //     .set(message.toJson());
 
     await _fireStore
         .collection("Patrick_Users")
+        .doc(sender.id)
+        .collection("users")
         .doc(receiver.id)
         .collection("messages")
         .doc(dateNow)
         .set(message.toJson());
     messageCtrl.clear();
+
+    await _fireStore
+        .collection("Patrick_Users")
+        .doc(receiver.id)
+        .collection("users")
+        .doc(sender.id)
+        .set(
+            UserChatModel(
+              lastMessage: message.message,
+              lastMessageDateTime: dateNow,
+              user: sender,
+            ).toJson(),
+            SetOptions(
+              merge: true,
+            ));
+    await _fireStore
+        .collection("Patrick_Users")
+        .doc(sender.id)
+        .collection("users")
+        .doc(receiver.id)
+        .set(
+            UserChatModel(
+              lastMessage: message.message,
+              lastMessageDateTime: dateNow,
+              user: receiver,
+            ).toJson(),
+            SetOptions(
+              merge: true,
+            ));
+    await _fireStore
+        .collection("Patrick_Users")
+        .doc(receiver.id)
+        .collection("users")
+        .doc(sender.id)
+        .collection("messages")
+        .doc(dateNow)
+        .set(message.toJson());
   }
 }
 
