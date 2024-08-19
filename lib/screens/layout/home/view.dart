@@ -13,7 +13,9 @@ class HomeView extends StatelessWidget {
       builder: (context, state) {
         final cubit = context.read<PostCtrl>();
         if (state is GetPostsLoadingState) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
         }
         if (state is GetPostsErrorState) {
           return const Center(
@@ -36,21 +38,22 @@ class HomeView extends StatelessWidget {
         }
         if (cubit.posts.isEmpty) {
           return const Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                IconBroken.document,
-                color: Colors.grey,
-                size: 100,
-              ),
-              SizedBox(height: 20),
-              Text(
-                'No posts found',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ],
-          ));
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  IconBroken.document,
+                  color: Colors.grey,
+                  size: 100,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'No posts found',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
+          );
         }
         return ListView.builder(
           itemBuilder: (context, index) => PostCardItem(cubit.posts[index]),
