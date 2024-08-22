@@ -12,7 +12,11 @@ class LoginView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthCtrl, AuthStates>(
-      listener: (context, state) {},
+      listener: (context, state) {
+        if (state is AuthSuccessAndGettingDataState) {
+          toAndFinish(context, const LayoutView());
+        }
+      },
       builder: (context, state) {
         final cubit = context.read<AuthCtrl>();
         return Scaffold(
@@ -67,10 +71,8 @@ class LoginView extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
+                    onPressed: cubit.login,
                     child: const Text('LOGIN'),
-                    onPressed: () {
-                      toAndFinish(context, const LayoutView());
-                    },
                   ),
                 ),
                 Row(

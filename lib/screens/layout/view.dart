@@ -33,10 +33,23 @@ class LayoutView extends StatelessWidget {
                 icon: const Icon(Icons.search),
                 onPressed: () {},
               ),
-              IconButton(
-                icon: const Icon(Icons.dark_mode_outlined),
-                onPressed: () {
-                  context.read<ThemeCtrl>().toggleTheme();
+              BlocBuilder<ThemeCtrl, bool>(
+                builder: (context, state) {
+                  return Row(
+                    children: [
+                      const Icon(Icons.dark_mode_outlined),
+                      Switch(
+                        value: context.read<ThemeCtrl>().state,
+                        onChanged: (v) {
+                          context.read<ThemeCtrl>().toggleTheme();
+                        },
+                        activeColor: Colors.green,
+                        activeTrackColor: Colors.white,
+                        inactiveThumbColor: Colors.grey,
+                        inactiveTrackColor: Colors.black,
+                      ),
+                    ],
+                  );
                 },
               ),
             ],

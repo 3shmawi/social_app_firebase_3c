@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/model/user.dart';
+import 'package:social_3c/screens/_resourses/toast.dart';
+import 'package:social_3c/services/local_database.dart';
 
 class AuthCtrl extends Cubit<AuthStates> {
   AuthCtrl() : super(AuthInitialState());
@@ -18,6 +20,10 @@ class AuthCtrl extends Cubit<AuthStates> {
 
 // ab
   void login() {
+    if (emailCtrl.text.isEmpty || passwordCtrl.text.isEmpty) {
+      AppToast.error("Your fill all fields first");
+      return;
+    }
     emit(AuthLoadingState());
     _auth
         .signInWithEmailAndPassword(
@@ -25,13 +31,22 @@ class AuthCtrl extends Cubit<AuthStates> {
       password: passwordCtrl.text,
     )
         .then((response) {
+      CacheHelper.saveData(key: "myId", value: response.user!.uid);
       getMyData(response.user!.uid, true);
+      AppToast.success("Logged in successfully");
     }).catchError((error) {
+      AppToast.error(error.toString());
       emit(AuthErrorState());
     });
   }
 
   void register() {
+    if (nameCtrl.text.isEmpty ||
+        emailCtrl.text.isEmpty ||
+        passwordCtrl.text.isEmpty) {
+      AppToast.error("Your fill all fields first");
+      return;
+    }
     emit(AuthLoadingState());
     _auth
         .createUserWithEmailAndPassword(
@@ -41,6 +56,8 @@ class AuthCtrl extends Cubit<AuthStates> {
         .then((response) {
       _createUser(response.user!.uid);
     }).catchError((error) {
+      AppToast.error(error.toString());
+
       emit(AuthErrorState());
     });
   }
@@ -60,15 +77,25 @@ class AuthCtrl extends Cubit<AuthStates> {
         .doc(userId)
         .set(newUser.toJson())
         .then((response) {
+      CacheHelper.saveData(key: "myId", value: newUser.userId);
+
       myData = newUser;
+      AppToast.success("Created user successfully");
+
       emit(AuthSuccessAndGettingDataState());
     }).catchError((error) {
+      AppToast.error(error.toString());
+
       emit(AuthErrorState());
     });
   }
 
   Future logout() async {
     myData = null;
+    CacheHelper.removeData(
+      key: "myId",
+    );
+
     return await _auth.signOut();
   }
 
