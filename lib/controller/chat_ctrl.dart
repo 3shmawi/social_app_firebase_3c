@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/model/message.dart';
@@ -10,36 +11,171 @@ class ChatCtrl extends Cubit<ChatStates> {
   ChatCtrl() : super(ChatInitialState());
 
   final _fireStore = FirebaseFirestore.instance;
+  String myId = FirebaseAuth.instance.currentUser!.uid;
 
-  final myId = CacheHelper.getData(key: "myId");
   final messageCtrl = TextEditingController();
 
   void sendMessage({
     required UserModel sender,
     required UserModel receiver,
-  }) {
+  }) async {
     if (messageCtrl.text.isEmpty) {
       AppToast.error("Write a message first");
       return;
     }
 
-    final newId = DateTime.now();
+    final date = DateTime.now();
+    final newId = date.toIso8601String();
+
     final newMessage = MessageModel(
-      messageId: newId.toIso8601String(),
+      messageId: newId,
       message: messageCtrl.text,
       date: newId,
       sender: sender,
       receiver: receiver,
     );
+    await _fireStore
+        .collection("MYM_USERS")
+        .doc(sender.id)
+        .collection("users")
+        .doc(receiver.id)
+        .collection("messages")
+        .doc(newId)
+        .set(newMessage.toMap());
+
+    messageCtrl.clear();
+
+    await _fireStore
+        .collection("MYM_USERS")
+        .doc(receiver.id)
+        .collection("users")
+        .doc(sender.id)
+        .collection("messages")
+        .doc(newId)
+        .set(newMessage.toMap());
+
+    await _fireStore
+        .collection("MYM_USERS")
+        .doc(receiver.id)
+        .collection("users")
+        .doc(sender.id)
+        .set(ChatModel(
+          receiver: newMessage.sender,
+          lastMessage: newMessage.message,
+          date: newId,
+        ).toMap());
+
+    await _fireStore
+        .collection("MYM_USERS")
+        .doc(sender.id)
+        .collection("users")
+        .doc(receiver.id)
+        .set(ChatModel(
+          receiver: newMessage.receiver,
+          lastMessage: newMessage.message,
+          date: newId,
+        ).toMap());
   }
 
-  List<MessageModel> messages = [];
+  void editMessage({
+    required MessageModel message,
+  }) async {
+    if (messageCtrl.text.isEmpty) {
+      AppToast.error("Write a message first");
+      return;
+    }
 
-  List<ChatModel> myUsers = [];
+    final newMessage = MessageModel(
+      messageId: message.messageId,
+      message: messageCtrl.text,
+      date: message.date,
+      sender: message.sender,
+      receiver: message.receiver,
+    );
+    await _fireStore
+        .collection("MYM_USERS")
+        .doc(message.sender.id)
+        .collection("users")
+        .doc(message.receiver.id)
+        .collection("messages")
+        .doc(message.messageId)
+        .update(newMessage.toMap());
+
+    messageCtrl.clear();
+
+    await _fireStore
+        .collection("MYM_USERS")
+        .doc(message.receiver.id)
+        .collection("users")
+        .doc(message.sender.id)
+        .collection("messages")
+        .doc(message.messageId)
+        .update(newMessage.toMap());
+
+    await _fireStore
+        .collection("MYM_USERS")
+        .doc(message.receiver.id)
+        .collection("users")
+        .doc(message.sender.id)
+        .set(ChatModel(
+          receiver: newMessage.sender,
+          lastMessage: newMessage.message,
+          date: message.date,
+        ).toMap());
+
+    await _fireStore
+        .collection("MYM_USERS")
+        .doc(message.sender.id)
+        .collection("users")
+        .doc(message.receiver.id)
+        .set(ChatModel(
+          receiver: newMessage.receiver,
+          lastMessage: newMessage.message,
+          date: message.date,
+        ).toMap());
+  }
+
+  Stream<List<MessageModel>> getMessages({
+    required String receiverId,
+    required String senderId,
+  }) {
+    return _fireStore
+        .collection("MYM_USERS")
+        .doc(receiverId)
+        .collection("users")
+        .doc(senderId)
+        .collection("messages")
+        .orderBy("date")
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => MessageModel.fromMap(doc.data()),
+              )
+              .toList(),
+        );
+  }
+
+  Stream<List<ChatModel>> getMyUsers() {
+    return _fireStore
+        .collection("MYM_USERS")
+        .doc(myId)
+        .collection("users")
+        .orderBy("date", descending: true)
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map(
+                (doc) => ChatModel.fromMap(doc.data()),
+              )
+              .toList(),
+        );
+  }
 
   List<UserModel> allUsers = [];
 
   void getAllUsers() {
+    String myId = CacheHelper.getData(key: "myId");
     emit(GetAllUsersLoadingState());
     _fireStore.collection('users').get().then((value) {
       allUsers.clear();

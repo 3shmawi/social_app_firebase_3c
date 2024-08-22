@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:social_3c/screens/_resources/assets_path/icon_broken.dart';
 
 import '../../../app/functions.dart';
 
@@ -73,10 +74,11 @@ class ChatItem extends StatelessWidget {
 }
 
 class RightMessage extends StatelessWidget {
-  const RightMessage(this.message, this.time, {super.key});
+  const RightMessage(this.message, this.time, {this.onSelected, super.key});
 
   final String message;
-  final DateTime time;
+  final String time;
+  final PopupMenuItemSelected<int>? onSelected;
 
   @override
   Widget build(BuildContext context) {
@@ -84,43 +86,93 @@ class RightMessage extends StatelessWidget {
       children: [
         Expanded(
           flex: 3,
-          child: Align(
-            alignment: Alignment.topRight,
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                0,
-                14,
-                14,
-                0,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade700,
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20),
-                        bottomLeft: Radius.circular(20),
-                        topRight: Radius.circular(20),
+          child: Row(
+            children: [
+              Align(
+                alignment: Alignment.topRight,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    0,
+                    14,
+                    14,
+                    0,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.green.shade700,
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            bottomLeft: Radius.circular(20),
+                            topRight: Radius.circular(20),
+                          ),
+                        ),
+                        child: Text(
+                          message,
+                          textAlign: isStartWithArabic(message)
+                              ? TextAlign.start
+                              : TextAlign.end,
+                          style: const TextStyle(
+                              color: Colors.white, fontSize: 18),
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      message,
-                      textAlign: isStartWithArabic(message)
-                          ? TextAlign.start
-                          : TextAlign.end,
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
+                      Text(
+                        daysBetween(DateTime.parse(time)),
+                        style: Theme.of(context).textTheme.labelSmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              PopupMenuButton(
+                icon: const Icon(
+                  IconBroken.moreCircle,
+                  color: Colors.grey,
+                ),
+                onSelected: onSelected,
+                itemBuilder: (context) => [
+                  const PopupMenuItem(
+                    value: 0,
+                    child: Row(
+                      children: [
+                        Icon(
+                          IconBroken.edit,
+                          color: Colors.blue,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          "Edit",
+                          style: TextStyle(
+                            color: Colors.blue,
+                          ),
+                        )
+                      ],
                     ),
                   ),
-                  Text(
-                    daysBetween(time),
-                    style: Theme.of(context).textTheme.labelSmall,
+                  const PopupMenuItem(
+                    value: 1,
+                    child: Row(
+                      children: [
+                        Icon(
+                          IconBroken.delete,
+                          color: Colors.red,
+                        ),
+                        SizedBox(width: 10),
+                        Text(
+                          "Delete",
+                          style: TextStyle(
+                            color: Colors.red,
+                          ),
+                        )
+                      ],
+                    ),
                   ),
                 ],
               ),
-            ),
+            ],
           ),
         ),
         const Expanded(flex: 1, child: SizedBox()),
@@ -133,7 +185,7 @@ class LeftMessage extends StatelessWidget {
   const LeftMessage(this.message, this.time, {super.key});
 
   final String message;
-  final DateTime time;
+  final String time;
 
   @override
   Widget build(BuildContext context) {
@@ -173,7 +225,7 @@ class LeftMessage extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    daysBetween(time),
+                    daysBetween(DateTime.parse(time)),
                     style: Theme.of(context).textTheme.labelSmall,
                   ),
                 ],

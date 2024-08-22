@@ -8,6 +8,8 @@ import 'package:social_3c/screens/_resources/shared/loading_error_empty.dart';
 import 'package:social_3c/screens/_resources/shared/toast.dart';
 import 'package:social_3c/screens/layout/chat/widgets.dart';
 
+import '../../../model/message.dart';
+
 class ChatDetailsView extends StatelessWidget {
   const ChatDetailsView({
     required this.receiver,
@@ -43,48 +45,71 @@ class ChatDetailsView extends StatelessWidget {
       body: BlocBuilder<ChatCtrl, ChatStates>(
         builder: (context, state) {
           final cubit = context.read<ChatCtrl>();
-          if (state is GetMessagesLoadingState) {
-            return LoadingErrorEmptyView(
-              state: CaseState.loading,
-              message: "Messages",
-              child: _sendItem(cubit, sender),
-            );
-          }
-          if (state is GetMessagesFailureState) {
-            return LoadingErrorEmptyView(
-              state: CaseState.error,
-              message: "Messages",
-              child: _sendItem(cubit, sender),
-            );
-          }
 
-          if (cubit.messages.isEmpty) {
-            return LoadingErrorEmptyView(
-              state: CaseState.empty,
-              message: "Messages",
-              child: _sendItem(cubit, sender),
-            );
-          }
           return Column(
             children: [
               Expanded(
-                child: Directionality(
-                  textDirection: TextDirection.rtl,
-                  child: ListView.builder(
-                    itemBuilder: (context, index) {
-                      if (cubit.messages[index].sender == sender) {
-                        return RightMessage(
-                          cubit.messages[index].message,
-                          cubit.messages[index].date,
+                child: StreamBuilder<List<MessageModel>>(
+                  stream: cubit.getMessages(
+                    receiverId: receiver.id,
+                    senderId: sender!.id,
+                  ),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.active) {
+                      final messages = snapshot.data;
+                      if (messages == null || messages.isEmpty) {
+                        return const LoadingErrorEmptyView(
+                          state: CaseState.empty,
+                          message: "Messages",
                         );
                       }
-                      return LeftMessage(
-                        cubit.messages[index].message,
-                        cubit.messages[index].date,
+                      return Directionality(
+                        textDirection: TextDirection.rtl,
+                        child: ListView.builder(
+                          itemBuilder: (context, index) {
+                            if (messages[index].sender.id == sender.id) {
+                              return GestureDetector(
+                                onLongPress: () {
+                                  //show pop up dialog
+                                  showDialog(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: Text('Long Pressed'),
+                                        content: Text(
+                                            'You have long pressed the widget!'),
+                                        actions: <Widget>[
+                                          TextButton(
+                                            child: Text('OK'),
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
+                                },
+                                child: RightMessage(
+                                  messages[index].message,
+                                  messages[index].date,
+                                ),
+                              );
+                            }
+                            return LeftMessage(
+                              messages[index].message,
+                              messages[index].date,
+                            );
+                          },
+                          itemCount: messages.length,
+                        ),
                       );
-                    },
-                    itemCount: cubit.messages.length,
-                  ),
+                    }
+                    return const LoadingErrorEmptyView(
+                      state: CaseState.loading,
+                      message: "Messages",
+                    );
+                  },
                 ),
               ),
               _sendItem(cubit, sender),

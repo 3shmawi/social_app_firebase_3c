@@ -6,6 +6,8 @@ import 'package:social_3c/screens/_resources/shared/navigation.dart';
 import 'package:social_3c/screens/layout/chat/details.dart';
 import 'package:social_3c/screens/layout/chat/widgets.dart';
 
+import '../../../model/message.dart';
+
 class ChatView extends StatelessWidget {
   const ChatView({super.key});
 
@@ -14,43 +16,56 @@ class ChatView extends StatelessWidget {
     return BlocBuilder<ChatCtrl, ChatStates>(
       builder: (context, state) {
         final cubit = context.read<ChatCtrl>();
-        final myUsers = cubit.myUsers;
         return Scaffold(
-          body: state is GetMyUsersLoadingState
-              ? const LoadingErrorEmptyView(
-                  state: CaseState.loading,
-                  message: "Users",
-                )
-              : state is GetMyUsersFailureState
-                  ? const LoadingErrorEmptyView(
-                      state: CaseState.error,
-                      message: "Users",
-                    )
-                  : myUsers.isEmpty
-                      ? const LoadingErrorEmptyView(
-                          state: CaseState.empty,
-                          message: "Users",
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(10),
-                          itemBuilder: (context, index) {
-                            return ChatItem(
-                              img: myUsers[index].receiver.imgUrl,
-                              name: myUsers[index].receiver.name,
-                              lastMessage: myUsers[index].lastMessage,
-                              date: myUsers[index].date.toString(),
-                              onTap: () {
-                                toPage(
-                                  context,
-                                  ChatDetailsView(
-                                    receiver: myUsers[index].receiver,
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          itemCount: myUsers.length,
-                        ),
+          body: StreamBuilder<List<ChatModel>>(
+            stream: ChatCtrl().getMyUsers(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.active) {
+                final myUsers = snapshot.data;
+                if (myUsers == null || myUsers.isEmpty) {
+                  return const LoadingErrorEmptyView(
+                    state: CaseState.empty,
+                    message: "Users",
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.all(10),
+                  itemBuilder: (context, index) {
+                    return ChatItem(
+                      img: myUsers[index].receiver.imgUrl,
+                      name: myUsers[index].receiver.name,
+                      lastMessage: myUsers[index].lastMessage,
+                      date: myUsers[index].date,
+                      onTap: () {
+                        toPage(
+                          context,
+                          ChatDetailsView(
+                            receiver: myUsers[index].receiver,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  itemCount: myUsers.length,
+                );
+              }
+
+              return const LoadingErrorEmptyView(
+                state: CaseState.loading,
+                message: "Users",
+              );
+            },
+          ),
+          // body: state is GetMyUsersLoadingState
+          //     ?
+          //     : state is GetMyUsersFailureState
+          //         ? const LoadingErrorEmptyView(
+          //             state: CaseState.error,
+          //             message: "Users",
+          //           )
+          //         : myUsers.isEmpty
+          //             ?
+          //             :
           floatingActionButton: FloatingActionButton(
             onPressed: () {
               cubit.getAllUsers();

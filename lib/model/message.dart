@@ -3,7 +3,7 @@ import 'package:social_3c/model/user.dart';
 class MessageModel {
   final String messageId;
   final String message;
-  final DateTime date;
+  final String date;
   final UserModel sender;
   final UserModel receiver;
 
@@ -39,7 +39,7 @@ class MessageModel {
 class ChatModel {
   final UserModel receiver;
   final String lastMessage;
-  final DateTime date;
+  final String date;
 
   ChatModel({
     required this.receiver,
