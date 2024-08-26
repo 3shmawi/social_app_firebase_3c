@@ -40,6 +40,7 @@ class ChatCtrl extends Cubit<ChatStates> {
         .orderBy("lastMessageDateTime", descending: true)
         .snapshots()
         .map((querySnapshot) {
+      print(querySnapshot.docs);
       return querySnapshot.docs.map((doc) {
         return UserChatModel.fromJson(doc.data());
       }).toList();

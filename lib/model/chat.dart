@@ -58,7 +58,7 @@ class UserChatModel {
   factory UserChatModel.fromJson(Map<String, dynamic> json) {
     return UserChatModel(
       lastMessage: json['lastMessage'],
-      lastMessageDateTime: json['lastMessageDateTime'],
+      lastMessageDateTime: json['lastMessageDateTime'].toString(),
       user: UserModel.fromMap(json['user']),
     );
   }
