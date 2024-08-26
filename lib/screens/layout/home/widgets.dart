@@ -1,17 +1,33 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_3c/controller/auth_ctrl.dart';
+import 'package:social_3c/controller/comment_ctrl.dart';
+import 'package:social_3c/controller/layout_ctrl.dart';
+import 'package:social_3c/controller/like_ctrl.dart';
 import 'package:social_3c/controller/post_ctrl.dart';
 import 'package:social_3c/model/post.dart';
+import 'package:social_3c/model/user.dart';
+import 'package:social_3c/screens/_resources/shared/navigation.dart';
+import 'package:social_3c/screens/layout/home/comment_view.dart';
 
 import '../../_resources/assets_path/icon_broken.dart';
 
 class PostCardItem extends StatelessWidget {
-  const PostCardItem(this.post, {super.key});
+  const PostCardItem(
+    this.post, {
+    this.isComment = false,
+    this.postIdFromComment,
+    super.key,
+  });
 
   final PostModel post;
+  final bool isComment;
+  final String? postIdFromComment;
 
   @override
   Widget build(BuildContext context) {
+    final myData = context.read<AuthCtrl>().myData;
     return Card(
       elevation: 5,
       margin: const EdgeInsets.all(10),
@@ -56,7 +72,7 @@ class PostCardItem extends StatelessWidget {
                     ),
                   ),
                 ),
-                _buildPopupMenuButton(context),
+                if (post.user.id == myData!.id) _buildPopupMenuButton(context),
               ],
             ),
             const Divider(color: Colors.green),
@@ -67,7 +83,6 @@ class PostCardItem extends StatelessWidget {
                 style: const TextStyle(fontSize: 16),
               ),
             ),
-            //todo if there is an image
             if (post.postImageUrl != null) ...[
               const SizedBox(height: 10),
               Container(
@@ -85,27 +100,93 @@ class PostCardItem extends StatelessWidget {
               ),
             ],
             const Divider(color: Colors.green),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(IconBroken.heart),
-                ),
-                const Text("Love"),
-                const Spacer(),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(IconBroken.chat),
-                ),
-                const Text("Comments"),
-                const Spacer(),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(IconBroken.send),
-                ),
-                const Text("Share"),
-              ],
-            )
+            if (!isComment)
+              Row(
+                children: [
+                  StreamBuilder<List<UserModel>>(
+                    stream: LikeCtrl().getLikes(post.postId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.active) {
+                        final likes = snapshot.data;
+                        if (likes == null || likes.isEmpty) {
+                          return Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  LikeCtrl().likeUnLike(
+                                    postId: post.postId,
+                                    isLiked: false,
+                                    user: myData,
+                                  );
+                                },
+                                icon: const Icon(IconBroken.heart),
+                              ),
+                              const Text("Love"),
+                            ],
+                          );
+                        }
+                        bool isLiked = false;
+                        for (var like in likes) {
+                          if (like.id == myData.id) {
+                            isLiked = true;
+                            break;
+                          }
+                        }
+                        return Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                LikeCtrl().likeUnLike(
+                                  postId: post.postId,
+                                  isLiked: isLiked,
+                                  user: myData,
+                                );
+                              },
+                              icon: Icon(
+                                isLiked
+                                    ? CupertinoIcons.heart_fill
+                                    : IconBroken.heart,
+                                color: Colors.red,
+                              ),
+                            ),
+                            Text("${likes.length} Likes"),
+                          ],
+                        );
+                      }
+                      return Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              LikeCtrl().likeUnLike(
+                                postId: post.postId,
+                                isLiked: false,
+                                user: myData,
+                              );
+                            },
+                            icon: const Icon(IconBroken.heart),
+                          ),
+                          const Text("Love"),
+                        ],
+                      );
+                    },
+                  ),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () {
+                      context.read<CommentCtrl>().getComment(post.postId);
+                      toPage(context, CommentView(post.postId));
+                    },
+                    icon: const Icon(IconBroken.chat),
+                  ),
+                  const Text("Comments"),
+                  const Spacer(),
+                  IconButton(
+                    onPressed: () {},
+                    icon: const Icon(IconBroken.send),
+                  ),
+                  const Text("Share"),
+                ],
+              )
           ],
         ),
       ),
@@ -119,8 +200,21 @@ class PostCardItem extends StatelessWidget {
       ),
       icon: const Icon(IconBroken.moreSquare),
       onSelected: (index) {
-        if (index == 1) {
-          context.read<PostCtrl>().deletePost(post.postId);
+        if (index == 0) {
+          if (isComment) {
+            context.read<CommentCtrl>().enableEditComment(post);
+          } else {
+            context.read<LayoutCtrl>().changeIndex(2);
+            context.read<PostCtrl>().enableEditPost(post);
+          }
+        } else if (index == 1) {
+          if (isComment) {
+            context
+                .read<CommentCtrl>()
+                .deleteComment(postIdFromComment!, post.postId);
+          } else {
+            context.read<PostCtrl>().deletePost(post.postId);
+          }
         }
       },
       itemBuilder: (context) => [

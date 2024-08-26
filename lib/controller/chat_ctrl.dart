@@ -27,13 +27,15 @@ class ChatCtrl extends Cubit<ChatStates> {
       message: messageCtrl.text,
       sender: sender,
       receiver: receiver,
-      date: date,
+      date: newId,
       messageId: newId,
     );
 
     await _fireStore
         .collection("Bebo_Users")
         .doc(sender.id)
+        .collection("users")
+        .doc(receiver.id)
         .collection("messages")
         .doc(newId)
         .set(message.toMap());
@@ -42,6 +44,8 @@ class ChatCtrl extends Cubit<ChatStates> {
     await _fireStore
         .collection("Bebo_Users")
         .doc(receiver.id)
+        .collection("users")
+        .doc(sender.id)
         .collection("messages")
         .doc(newId)
         .set(message.toMap());
@@ -53,7 +57,7 @@ class ChatCtrl extends Cubit<ChatStates> {
         .doc(receiver.id)
         .set(
           ChatModel(
-            receiver: message.sender,
+            receiver: message.receiver,
             lastMessage: message.message,
             date: message.date,
           ).toMap(),
@@ -66,7 +70,7 @@ class ChatCtrl extends Cubit<ChatStates> {
         .doc(sender.id)
         .set(
           ChatModel(
-            receiver: message.receiver,
+            receiver: message.sender,
             lastMessage: message.message,
             date: message.date,
           ).toMap(),
@@ -77,6 +81,8 @@ class ChatCtrl extends Cubit<ChatStates> {
   Stream<List<MessageModel>> getMessages(String receiverId) {
     return _fireStore
         .collection("Bebo_Users")
+        .doc(_currentUser!.uid)
+        .collection("users")
         .doc(receiverId)
         .collection("messages")
         .orderBy("date")
@@ -94,7 +100,7 @@ class ChatCtrl extends Cubit<ChatStates> {
         .collection('Bebo_Users')
         .doc(_currentUser!.uid)
         .collection('users')
-        .orderBy("date")
+        .orderBy("date", descending: true)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
@@ -110,8 +116,11 @@ class ChatCtrl extends Cubit<ChatStates> {
     emit(GetAllUsersLoadingState());
     _fireStore.collection('users').get().then(
       (snapshot) {
-        allUsers =
-            snapshot.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
+        allUsers.clear();
+        for (var doc in snapshot.docs) {
+          if (doc.id == _currentUser!.uid) continue;
+          allUsers.add(UserModel.fromMap(doc.data()));
+        }
         emit(GetAllUsersSuccessState());
       },
     ).catchError((error) {

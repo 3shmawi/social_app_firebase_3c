@@ -9,8 +9,8 @@ import 'package:social_3c/model/post.dart';
 import 'package:social_3c/model/user.dart';
 import 'package:social_3c/screens/_resources/shared/toast.dart';
 
-class PostCtrl extends Cubit<PostStates> {
-  PostCtrl() : super(PostInitialState());
+class CommentCtrl extends Cubit<CommentStates> {
+  CommentCtrl() : super(CommentInitialState());
 
   final _fireStore = FirebaseFirestore.instance;
   final _storage = FirebaseStorage.instance;
@@ -20,20 +20,23 @@ class PostCtrl extends Cubit<PostStates> {
   XFile? selectedImage;
   String? imgUrl;
 
-  void createOrEdit(UserModel user) {
-    if (editedPost == null) {
-      createPost(user);
+  void createOrEdit({
+    required String postId,
+    required UserModel user,
+  }) {
+    if (editedComment == null) {
+      createComment(postId, user);
     } else {
-      editPost(user);
+      editComment(postId, user);
     }
   }
 
-  void createPost(UserModel user) async {
+  void createComment(String postId, UserModel user) async {
     if (contentCtrl.text.isEmpty) {
-      AppToast.error("Please enter content");
+      AppToast.error("Please enter comment");
       return;
     }
-    emit(CreatePostLoadingState());
+    emit(CreateCommentLoadingState());
     final newId = DateTime.now().toIso8601String();
     if (selectedImage != null) {
       imgUrl = await _uploadImage(File(selectedImage!.path));
@@ -49,34 +52,36 @@ class PostCtrl extends Cubit<PostStates> {
 
     _fireStore
         .collection("beboPosts")
+        .doc(postId)
+        .collection("comments")
         .doc(newId)
         .set(post.toJson())
         .then((value) {
-      AppToast.success("Created post successfully");
+      AppToast.success("Created comment successfully");
       contentCtrl.clear();
       selectedImage = null;
-      editedPost = null;
+      editedComment = null;
       imgUrl = null;
-      getPost();
+      getComment(postId);
     }).catchError((error) {
-      AppToast.error("Failed to create post. Please try again later.");
-      emit(CreatePostErrorState());
+      AppToast.error("Failed to create comment. Please try again later.");
+      emit(CreateCommentErrorState());
     });
   }
 
-  void editPost(UserModel user) async {
+  void editComment(String postId, UserModel user) async {
     if (contentCtrl.text.isEmpty) {
       AppToast.error("Please enter content");
       return;
     }
-    emit(CreatePostLoadingState());
+    emit(CreateCommentLoadingState());
     if (selectedImage != null) {
       imgUrl = await _uploadImage(File(selectedImage!.path));
     }
     final post = PostModel(
-      postId: editedPost!.postId,
+      postId: editedComment!.postId,
       content: contentCtrl.text,
-      createdAt: editedPost!.createdAt,
+      createdAt: editedComment!.createdAt,
       updatedAt: Timestamp.now(),
       postImageUrl: imgUrl,
       user: user,
@@ -84,19 +89,27 @@ class PostCtrl extends Cubit<PostStates> {
 
     _fireStore
         .collection("beboPosts")
+        .doc(postId)
+        .collection("comments")
         .doc(post.postId)
         .update(post.toJson())
         .then((value) {
-      AppToast.success("Updated post successfully");
+      AppToast.success("Updated comment successfully");
       contentCtrl.clear();
       selectedImage = null;
-      editedPost = null;
+      editedComment = null;
       imgUrl = null;
-      getPost();
+      getComment(postId);
     }).catchError((error) {
-      AppToast.error("Failed to update post. Please try again later.");
-      emit(CreatePostErrorState());
+      AppToast.error("Failed to update comment. Please try again later.");
+      emit(CreateCommentErrorState());
     });
+  }
+
+  void clearSelectedImage() {
+    selectedImage = null;
+    imgUrl = null;
+    emit(PickImagesState());
   }
 
   Future<void> pickImage() async {
@@ -110,7 +123,7 @@ class PostCtrl extends Cubit<PostStates> {
   Future<String> _uploadImage(File file) async {
     return _storage
         .ref()
-        .child('posts/${file.path}')
+        .child('posts/comments/${file.path}')
         .putFile(file)
         .then((snapshot) async {
       final downloadUrl = await snapshot.ref.getDownloadURL();
@@ -120,71 +133,64 @@ class PostCtrl extends Cubit<PostStates> {
 
   List<PostModel> posts = [];
 
-  void getPost() {
-    emit(GetPostsLoadingState());
+  void getComment(String postId) {
+    emit(GetCommentsLoadingState());
     _fireStore
         .collection("beboPosts")
+        .doc(postId)
+        .collection("comments")
         .orderBy("createdAt", descending: true)
         .get()
         .then((querySnapshot) {
       posts = querySnapshot.docs
           .map((doc) => PostModel.fromJson(doc.data()))
           .toList();
-      emit(GetPostsSuccessState());
+      emit(GetCommentsSuccessState());
     }).catchError((error) {
-      AppToast.error("Failed to get posts. Please try again later.");
-      emit(GetPostsErrorState());
+      AppToast.error("Failed to get comments. Please try again later.");
+      emit(GetCommentsErrorState());
     });
   }
 
-  PostModel? editedPost;
+  PostModel? editedComment;
 
-  void enableEditPost(PostModel post) {
-    editedPost = post;
+  void enableEditComment(PostModel post) {
+    editedComment = post;
     imgUrl = post.postImageUrl;
     contentCtrl.text = post.content;
-    emit(EditPostState());
+    emit(EditCommentState());
   }
 
-  void deletePost(String postId) {
-    _fireStore.collection("beboPosts").doc(postId).delete().then((value) {
-      AppToast.success("Post deleted successfully");
-      getPost();
+  void deleteComment(String postId, String commentId) {
+    _fireStore
+        .collection("beboPosts")
+        .doc(postId)
+        .collection("comments")
+        .doc(commentId)
+        .delete()
+        .then((value) {
+      AppToast.success("Comment deleted successfully");
+      getComment(postId);
     });
-  }
-
-  //search
-
-  final searchCtrl = TextEditingController();
-  List<PostModel> filteredPosts = [];
-
-  void searchPosts() {
-    filteredPosts = posts.where((post) {
-      return post.content
-              .toLowerCase()
-              .contains(searchCtrl.text.toLowerCase()) ||
-          post.user.name.toLowerCase().contains(searchCtrl.text.toLowerCase());
-    }).toList();
-    emit(GetPostsSuccessState());
   }
 }
 
-abstract class PostStates {}
+abstract class CommentStates {}
 
-class PostInitialState extends PostStates {}
+class CommentInitialState extends CommentStates {}
 
-final class CreatePostLoadingState extends PostStates {}
+final class CreateCommentLoadingState extends CommentStates {}
 
-class CreatePostSuccessState extends PostStates {}
+class CreateCommentSuccessState extends CommentStates {}
 
-class CreatePostErrorState extends PostStates {}
+class CreateCommentErrorState extends CommentStates {}
 
-final class GetPostsLoadingState extends PostStates {}
+final class GetCommentsLoadingState extends CommentStates {}
 
-class GetPostsSuccessState extends PostStates {}
+class GetCommentsSuccessState extends CommentStates {}
 
-class GetPostsErrorState extends PostStates {}
+class GetCommentsErrorState extends CommentStates {}
 
-class PickImagesState extends PostStates {}
+class PickImagesState extends CommentStates {}
 
-class EditPostState extends PostStates {}
+class EditCommentState extends CommentStates {}

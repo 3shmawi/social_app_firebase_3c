@@ -68,12 +68,12 @@ class ChatDetailsView extends StatelessWidget {
                             if (messages[index].sender.id == sender!.id) {
                               return RightMessage(
                                 messages[index].message,
-                                messages[index].date,
+                                DateTime.parse(messages[index].date),
                               );
                             }
                             return LeftMessage(
                               messages[index].message,
-                              messages[index].date,
+                              DateTime.parse(messages[index].date),
                             );
                           },
                           itemCount: messages.length,

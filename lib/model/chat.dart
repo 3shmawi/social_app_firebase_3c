@@ -4,7 +4,7 @@ class MessageModel {
   final String message;
   final UserModel sender;
   final UserModel receiver;
-  final DateTime date;
+  final String date;
   final String messageId;
 
   MessageModel({
@@ -39,7 +39,7 @@ class MessageModel {
 class ChatModel {
   final UserModel receiver;
   final String lastMessage;
-  final DateTime date;
+  final String date;
 
   ChatModel({
     required this.receiver,

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/controller/layout_ctrl.dart';
 import 'package:social_3c/screens/_resources/assets_path/icon_broken.dart';
+import 'package:social_3c/screens/_resources/shared/navigation.dart';
+import 'package:social_3c/screens/layout/search/view.dart';
 
 class LayoutView extends StatelessWidget {
   const LayoutView({super.key});
@@ -24,7 +26,9 @@ class LayoutView extends StatelessWidget {
             ),
             actions: [
               IconButton(
-                onPressed: () {},
+                onPressed: () {
+                  toPage(context, const SearchView());
+                },
                 icon: const Icon(
                   IconBroken.search,
                 ),
