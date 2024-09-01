@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_3c/app/functions.dart';
 import 'package:social_3c/controller/auth_ctrl.dart';
 import 'package:social_3c/controller/chat_ctrl.dart';
 import 'package:social_3c/model/user.dart';
@@ -10,13 +11,49 @@ import 'package:social_3c/screens/layout/chat/widgets.dart';
 
 import '../../../model/message.dart';
 
-class ChatDetailsView extends StatelessWidget {
+class ChatDetailsView extends StatefulWidget {
   const ChatDetailsView({
     required this.receiver,
     super.key,
   });
 
-  final UserModel receiver;
+  final ChatModel receiver;
+
+  @override
+  State<ChatDetailsView> createState() => _ChatDetailsViewState();
+}
+
+class _ChatDetailsViewState extends State<ChatDetailsView>
+    with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    context
+        .read<ChatCtrl>()
+        .updateUserStatus(true, widget.receiver.receiver.id);
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      context.read<ChatCtrl>().updateUserStatus(
+          false,
+          widget.receiver.receiver
+              .id); // User has put the app in the background or closed it
+    } else if (state == AppLifecycleState.resumed) {
+      context
+          .read<ChatCtrl>()
+          .updateUserStatus(true, widget.receiver.receiver.id);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,10 +72,28 @@ class ChatDetailsView extends StatelessWidget {
             CircleAvatar(
               radius: 25,
               backgroundColor: Colors.green.shade700,
-              backgroundImage: NetworkImage(receiver.imgUrl),
+              backgroundImage: NetworkImage(widget.receiver.receiver.imgUrl),
             ),
             const SizedBox(width: 8),
-            Text(receiver.name),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.receiver.receiver.name),
+                Text(
+                  widget.receiver.isOnline
+                      ? "online"
+                      : widget.receiver.lastSeen == "now"
+                          ? "now"
+                          : daysBetween(
+                              DateTime.parse(widget.receiver.lastSeen)),
+                  style: TextStyle(
+                    color:
+                        widget.receiver.isOnline ? Colors.green : Colors.grey,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -51,7 +106,7 @@ class ChatDetailsView extends StatelessWidget {
               Expanded(
                 child: StreamBuilder<List<MessageModel>>(
                   stream: cubit.getMessages(
-                    receiverId: receiver.id,
+                    receiverId: widget.receiver.receiver.id,
                     senderId: sender!.id,
                   ),
                   builder: (context, snapshot) {
@@ -68,32 +123,17 @@ class ChatDetailsView extends StatelessWidget {
                         child: ListView.builder(
                           itemBuilder: (context, index) {
                             if (messages[index].sender.id == sender.id) {
-                              return GestureDetector(
-                                onLongPress: () {
-                                  //show pop up dialog
-                                  showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) {
-                                      return AlertDialog(
-                                        title: Text('Long Pressed'),
-                                        content: Text(
-                                            'You have long pressed the widget!'),
-                                        actions: <Widget>[
-                                          TextButton(
-                                            child: Text('OK'),
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  );
+                              return RightMessage(
+                                messages[index].message,
+                                messages[index].date,
+                                onSelected: (selectedIndex) {
+                                  if (selectedIndex == 0) {
+                                    cubit.enableEdit(messages[index]);
+                                  } else if (selectedIndex == 1) {
+                                    cubit.deleteMessage(messages[index],
+                                        index == messages.length - 1);
+                                  }
                                 },
-                                child: RightMessage(
-                                  messages[index].message,
-                                  messages[index].date,
-                                ),
                               );
                             }
                             return LeftMessage(
@@ -144,14 +184,18 @@ class ChatDetailsView extends StatelessWidget {
               if (sender == null) {
                 AppToast.error("Please Login first!");
               } else {
-                cubit.sendMessage(
-                  sender: sender,
-                  receiver: receiver,
-                );
+                if (cubit.message == null) {
+                  cubit.sendMessage(
+                    sender: sender,
+                    receiver: widget.receiver.receiver,
+                  );
+                } else {
+                  cubit.editMessage();
+                }
               }
             },
-            icon: const Icon(
-              IconBroken.send,
+            icon: Icon(
+              cubit.message == null ? IconBroken.send : IconBroken.edit,
             ),
           ),
         ],

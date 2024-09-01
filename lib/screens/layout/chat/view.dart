@@ -6,6 +6,7 @@ import 'package:social_3c/screens/_resources/shared/navigation.dart';
 import 'package:social_3c/screens/layout/chat/details.dart';
 import 'package:social_3c/screens/layout/chat/widgets.dart';
 
+import '../../../app/constants.dart';
 import '../../../model/message.dart';
 
 class ChatView extends StatelessWidget {
@@ -31,19 +32,37 @@ class ChatView extends StatelessWidget {
                 return ListView.builder(
                   padding: const EdgeInsets.all(10),
                   itemBuilder: (context, index) {
-                    return ChatItem(
-                      img: myUsers[index].receiver.imgUrl,
-                      name: myUsers[index].receiver.name,
-                      lastMessage: myUsers[index].lastMessage,
-                      date: myUsers[index].date,
-                      onTap: () {
-                        toPage(
-                          context,
-                          ChatDetailsView(
-                            receiver: myUsers[index].receiver,
+                    return Stack(
+                      children: [
+                        ChatItem(
+                          img: myUsers[index].receiver.imgUrl,
+                          name: myUsers[index].receiver.name,
+                          lastMessage: myUsers[index].lastMessage ==
+                                  AppConstants.deleteMessage
+                              ? "This message is deleted"
+                              : myUsers[index].lastMessage,
+                          date: myUsers[index].date,
+                          onTap: () {
+                            toPage(
+                              context,
+                              ChatDetailsView(
+                                receiver: myUsers[index],
+                              ),
+                            );
+                          },
+                        ),
+                        if (myUsers[index].isOnline)
+                          const Positioned(
+                            top: 10,
+                            right: 20,
+                            child: Text(
+                              "online",
+                              style: TextStyle(
+                                color: Colors.green,
+                              ),
+                            ),
                           ),
-                        );
-                      },
+                      ],
                     );
                   },
                   itemCount: myUsers.length,
@@ -131,7 +150,16 @@ class ChatView extends StatelessWidget {
                                                   toPage(
                                                     context,
                                                     ChatDetailsView(
-                                                      receiver: allUsers[index],
+                                                      receiver: ChatModel(
+                                                        receiver:
+                                                            allUsers[index],
+                                                        lastMessage:
+                                                            "Start with a message",
+                                                        date: DateTime.now()
+                                                            .toIso8601String(),
+                                                        isOnline: false,
+                                                        lastSeen: "",
+                                                      ),
                                                     ),
                                                   );
                                                 },

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:social_3c/app/constants.dart';
 import 'package:social_3c/screens/_resources/assets_path/icon_broken.dart';
 
 import '../../../app/functions.dart';
@@ -103,7 +104,10 @@ class RightMessage extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
-                          color: Colors.green.shade700,
+                          color: message != AppConstants.deleteMessage
+                              ? Colors.green.shade700
+                              : Colors.grey.shade300,
+                          border: Border.all(color: Colors.grey),
                           borderRadius: const BorderRadius.only(
                             topLeft: Radius.circular(20),
                             bottomLeft: Radius.circular(20),
@@ -111,7 +115,9 @@ class RightMessage extends StatelessWidget {
                           ),
                         ),
                         child: Text(
-                          message,
+                          message != AppConstants.deleteMessage
+                              ? message
+                              : "This message is deleted",
                           textAlign: isStartWithArabic(message)
                               ? TextAlign.start
                               : TextAlign.end,
@@ -119,59 +125,61 @@ class RightMessage extends StatelessWidget {
                               color: Colors.white, fontSize: 18),
                         ),
                       ),
-                      Text(
-                        daysBetween(DateTime.parse(time)),
-                        style: Theme.of(context).textTheme.labelSmall,
-                      ),
+                      if (message != AppConstants.deleteMessage)
+                        Text(
+                          daysBetween(DateTime.parse(time)),
+                          style: Theme.of(context).textTheme.labelSmall,
+                        ),
                     ],
                   ),
                 ),
               ),
-              PopupMenuButton(
-                icon: const Icon(
-                  IconBroken.moreCircle,
-                  color: Colors.grey,
-                ),
-                onSelected: onSelected,
-                itemBuilder: (context) => [
-                  const PopupMenuItem(
-                    value: 0,
-                    child: Row(
-                      children: [
-                        Icon(
-                          IconBroken.edit,
-                          color: Colors.blue,
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          "Edit",
-                          style: TextStyle(
+              if (message != AppConstants.deleteMessage)
+                PopupMenuButton(
+                  icon: const Icon(
+                    IconBroken.moreCircle,
+                    color: Colors.grey,
+                  ),
+                  onSelected: onSelected,
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 0,
+                      child: Row(
+                        children: [
+                          Icon(
+                            IconBroken.edit,
                             color: Colors.blue,
                           ),
-                        )
-                      ],
+                          SizedBox(width: 10),
+                          Text(
+                            "Edit",
+                            style: TextStyle(
+                              color: Colors.blue,
+                            ),
+                          )
+                        ],
+                      ),
                     ),
-                  ),
-                  const PopupMenuItem(
-                    value: 1,
-                    child: Row(
-                      children: [
-                        Icon(
-                          IconBroken.delete,
-                          color: Colors.red,
-                        ),
-                        SizedBox(width: 10),
-                        Text(
-                          "Delete",
-                          style: TextStyle(
+                    const PopupMenuItem(
+                      value: 1,
+                      child: Row(
+                        children: [
+                          Icon(
+                            IconBroken.delete,
                             color: Colors.red,
                           ),
-                        )
-                      ],
+                          SizedBox(width: 10),
+                          Text(
+                            "Delete",
+                            style: TextStyle(
+                              color: Colors.red,
+                            ),
+                          )
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -217,17 +225,20 @@ class LeftMessage extends StatelessWidget {
                       ),
                     ),
                     child: Text(
-                      message,
+                      message != AppConstants.deleteMessage
+                          ? message
+                          : "This message is deleted",
                       textAlign: isStartWithArabic(message)
                           ? TextAlign.start
                           : TextAlign.end,
                       style: const TextStyle(color: Colors.black, fontSize: 18),
                     ),
                   ),
-                  Text(
-                    daysBetween(DateTime.parse(time)),
-                    style: Theme.of(context).textTheme.labelSmall,
-                  ),
+                  if (message != AppConstants.deleteMessage)
+                    Text(
+                      daysBetween(DateTime.parse(time)),
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
                 ],
               ),
             ),

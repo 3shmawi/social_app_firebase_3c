@@ -18,7 +18,7 @@ String daysBetween(DateTime date) {
       return (' ${(DateTime.now().difference(date).inHours / 24).round().toString()}d');
     }
   } else {
-    return date.toString();
+    return date.toString().substring(0, 10);
   }
 }
 //

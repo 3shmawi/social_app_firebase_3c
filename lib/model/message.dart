@@ -40,11 +40,15 @@ class ChatModel {
   final UserModel receiver;
   final String lastMessage;
   final String date;
+  final bool isOnline;
+  final String lastSeen;
 
   ChatModel({
     required this.receiver,
     required this.lastMessage,
     required this.date,
+    required this.isOnline,
+    required this.lastSeen,
   });
 
   Map<String, dynamic> toMap() {
@@ -52,6 +56,8 @@ class ChatModel {
       'receiver': receiver.toJson(),
       'lastMessage': lastMessage,
       'date': date,
+      'isOnline': isOnline,
+      'lastSeen': lastSeen,
     };
   }
 
@@ -60,6 +66,8 @@ class ChatModel {
       receiver: UserModel.fromMap(json['receiver']),
       lastMessage: json['lastMessage'],
       date: json['date'],
+      isOnline: json['isOnline'] ?? false,
+      lastSeen: json['lastSeen'] ?? "now",
     );
   }
 }
