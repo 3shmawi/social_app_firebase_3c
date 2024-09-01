@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/app/theme.dart';
 import 'package:social_3c/ctrl/auth_ctrl.dart';
 import 'package:social_3c/ctrl/layout_ctrl.dart';
+import 'package:social_3c/ctrl/post_ctrl.dart';
 import 'package:social_3c/ctrl/theme_ctrl.dart';
 import 'package:social_3c/services/local_database.dart';
 
@@ -18,6 +19,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => ThemeCtrl()),
         BlocProvider(create: (_) => AuthCtrl()),
         BlocProvider(create: (_) => LayoutCtrl()),
+        BlocProvider(create: (_) => PostCtrl()),
       ],
       child: BlocBuilder<ThemeCtrl, bool>(
         builder: (context, state) {

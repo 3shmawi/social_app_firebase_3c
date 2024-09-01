@@ -1,54 +1,41 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class UserModel {
-  final String userId;
-  final String userName;
+  final String id;
   final String email;
-  final DateTime createdAt;
-  final DateTime updatedAt;
-  final String profileImgUrl;
+  final String name;
+  final Timestamp createdAt;
+  final Timestamp updatedAt;
+  final String imgUrl;
 
   UserModel({
-    required this.userId,
-    required this.userName,
+    required this.id,
     required this.email,
+    required this.name,
     required this.createdAt,
     required this.updatedAt,
-    required this.profileImgUrl,
+    required this.imgUrl,
   });
 
-  factory UserModel.fromJson(Map<String, dynamic> json) {
+  factory UserModel.fromMap(Map<String, dynamic> json) {
     return UserModel(
-      userId: json['userId'],
-      userName: json['username'],
+      id: json['uid'],
       email: json['email'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-      profileImgUrl: json['profile_img_url'],
+      name: json['username'],
+      createdAt: json['createdAt'],
+      updatedAt: json['updatedAt'],
+      imgUrl: json['imgUrl'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'userId': userId,
-      'username': userName,
+      'uid': id,
       'email': email,
-      'created_at': createdAt,
-      'updated_at': updatedAt,
-      'profile_img_url': profileImgUrl,
+      'username': name,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      'imgUrl': imgUrl,
     };
-  }
-
-  UserModel copyWith({
-    String? userName,
-    DateTime? updatedAt,
-    String? profileImgUrl,
-  }) {
-    return UserModel(
-      userId: userId,
-      email: email,
-      createdAt: createdAt,
-      userName: userName ?? this.userName,
-      updatedAt: updatedAt ?? this.updatedAt,
-      profileImgUrl: profileImgUrl ?? this.profileImgUrl,
-    );
   }
 }

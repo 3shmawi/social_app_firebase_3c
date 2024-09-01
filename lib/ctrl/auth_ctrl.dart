@@ -64,12 +64,12 @@ class AuthCtrl extends Cubit<AuthStates> {
 
   void _createUser(String userId) {
     final newUser = UserModel(
-      userId: userId,
-      userName: nameCtrl.text,
+      id: userId,
+      name: nameCtrl.text,
       email: emailCtrl.text.trim(),
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-      profileImgUrl: "",
+      createdAt: Timestamp.now(),
+      updatedAt: Timestamp.now(),
+      imgUrl: "",
     );
 
     _database
@@ -77,7 +77,7 @@ class AuthCtrl extends Cubit<AuthStates> {
         .doc(userId)
         .set(newUser.toJson())
         .then((response) {
-      CacheHelper.saveData(key: "myId", value: newUser.userId);
+      CacheHelper.saveData(key: "myId", value: newUser.id);
 
       myData = newUser;
       AppToast.success("Created user successfully");
@@ -106,7 +106,7 @@ class AuthCtrl extends Cubit<AuthStates> {
       emit(GetProfileDataLoadingState());
     }
     _database.collection("users").doc(myId).get().then((response) {
-      myData = UserModel.fromJson(response.data()!);
+      myData = UserModel.fromMap(response.data()!);
       emit(AuthSuccessAndGettingDataState());
     }).catchError((error) {
       emit(AuthErrorState());
