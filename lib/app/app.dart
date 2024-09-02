@@ -5,6 +5,7 @@ import 'package:social_3c/controller/chat_ctrl.dart';
 import 'package:social_3c/controller/comment_ctrl.dart';
 import 'package:social_3c/controller/layout_ctrl.dart';
 import 'package:social_3c/controller/post_ctrl.dart';
+import 'package:social_3c/controller/settings_ctrl.dart';
 import 'package:social_3c/screens/splash.dart';
 
 class MyApp extends StatelessWidget {
@@ -19,6 +20,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (context) => PostCtrl()..getPost()),
         BlocProvider(create: (context) => CommentCtrl()),
         BlocProvider(create: (context) => ChatCtrl()),
+        BlocProvider(create: (context) => SettingsCtrl()),
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,

@@ -48,6 +48,7 @@ class AuthCtrl extends Cubit<AuthStates> {
   void _signup(String uid) {
     final newUser = UserModel(
       id: uid,
+      bio: "bio...",
       email: emailCtrl.text,
       name: userNameCtrl.text,
       createdAt: Timestamp.now(),

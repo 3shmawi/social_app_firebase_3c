@@ -1,11 +1,28 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:social_3c/controller/post_ctrl.dart';
 import 'package:social_3c/screens/_resources/assets_path/icon_broken.dart';
 import 'package:social_3c/screens/layout/home/widgets.dart';
 
-class HomeView extends StatelessWidget {
+class HomeView extends StatefulWidget {
   const HomeView({super.key});
+
+  @override
+  State<HomeView> createState() => _HomeViewState();
+}
+
+class _HomeViewState extends State<HomeView> {
+  @override
+  void initState() {
+    super.initState();
+    Timer.periodic(const Duration(minutes: 2), (_) => refresh());
+  }
+
+  void refresh() {
+    context.read<PostCtrl>().getPost();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,9 +72,12 @@ class HomeView extends StatelessWidget {
             ),
           );
         }
-        return ListView.builder(
-          itemBuilder: (context, index) => PostCardItem(cubit.posts[index]),
-          itemCount: cubit.posts.length,
+        return RefreshIndicator(
+          onRefresh: () async => cubit.getPost(),
+          child: ListView.builder(
+            itemBuilder: (context, index) => PostCardItem(cubit.posts[index]),
+            itemCount: cubit.posts.length,
+          ),
         );
       },
     );

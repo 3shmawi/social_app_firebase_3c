@@ -4,6 +4,7 @@ class UserModel {
   final String id;
   final String email;
   final String name;
+  final String bio;
   final Timestamp createdAt;
   final Timestamp updatedAt;
   final String imgUrl;
@@ -15,6 +16,7 @@ class UserModel {
     required this.createdAt,
     required this.updatedAt,
     required this.imgUrl,
+    required this.bio,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> json) {
@@ -25,6 +27,7 @@ class UserModel {
       createdAt: json['createdAt'],
       updatedAt: json['updatedAt'],
       imgUrl: json['imgUrl'],
+      bio: json['bio'] ?? "bio...",
     );
   }
 
@@ -36,6 +39,7 @@ class UserModel {
       'createdAt': createdAt,
       'updatedAt': updatedAt,
       'imgUrl': imgUrl,
+      'bio': bio,
     };
   }
 }

@@ -137,6 +137,32 @@ class PostCtrl extends Cubit<PostStates> {
     });
   }
 
+  Future<List<PostModel>> getMyPost(String userId) async {
+    final response = await _fireStore
+        .collection("beboPosts")
+        .orderBy("createdAt", descending: true)
+        .where("user.uid", isEqualTo: userId)
+        .get();
+    print(response.docs.length);
+    return response.docs.map((doc) => PostModel.fromJson(doc.data())).toList();
+  }
+
+  Future<List<PostModel>> getMyPostPhotos(String userId) async {
+    final response = await _fireStore
+        .collection("beboPosts")
+        .orderBy("createdAt", descending: true)
+        .where("postImageUrl", isNotEqualTo: null)
+        .where("user.uid", isEqualTo: userId)
+        .get();
+    return response.docs
+        .map((doc) {
+          return PostModel.fromJson(doc.data());
+        })
+        .toList()
+        .where((post) => post.postImageUrl != null)
+        .toList();
+  }
+
   PostModel? editedPost;
 
   void enableEditPost(PostModel post) {
