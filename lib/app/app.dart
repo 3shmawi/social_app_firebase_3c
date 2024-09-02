@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => ThemeCtrl()),
         BlocProvider(create: (_) => AuthCtrl()),
         BlocProvider(create: (_) => LayoutCtrl()),
-        BlocProvider(create: (_) => PostCtrl()),
+        BlocProvider(create: (_) => PostCtrl()..fetchPosts()),
       ],
       child: BlocBuilder<ThemeCtrl, bool>(
         builder: (context, state) {

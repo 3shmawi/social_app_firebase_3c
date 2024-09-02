@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_3c/ctrl/layout_ctrl.dart';
+import 'package:social_3c/ctrl/post_ctrl.dart';
+
+import '../../../model/post.dart';
 
 class PostItem extends StatelessWidget {
-  const PostItem({super.key});
+  const PostItem(this.post, {super.key});
+
+  final PostModel post;
 
   @override
   Widget build(BuildContext context) {
@@ -25,34 +32,42 @@ class PostItem extends StatelessWidget {
                 radius: 35,
               ),
               const SizedBox(width: 10),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Mohamed Ashraf",
+                      post.user.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     Text(
-                      "now",
+                      post.createdAt.toString(),
                       style: TextStyle(color: Colors.grey),
                     ),
                   ],
                 ),
               ),
               PopupMenuButton(
+                onSelected: (value) {
+                  if (value == 2) {
+                    context.read<PostCtrl>().deletePost(post.postId);
+                  } else if (value == 1) {
+                    context.read<PostCtrl>().enableEditPost(post);
+                    context.read<LayoutCtrl>().changeIndex(2);
+                  }
+                },
                 itemBuilder: (context) => [
                   const PopupMenuItem(
-                    child: Text("Delete"),
+                    child: Text("Edit"),
                     value: 1,
                   ),
                   const PopupMenuItem(
-                    child: Text("Edit"),
+                    child: Text("Delete"),
                     value: 2,
                   ),
                 ],
@@ -62,18 +77,25 @@ class PostItem extends StatelessWidget {
           const Divider(
             color: Colors.grey,
           ),
-          const Align(
+          Align(
             alignment: Alignment.topLeft,
             child: Text(
-              " s sdf sdf sdf sdf sdf",
+              post.content,
               textAlign: TextAlign.center,
             ),
           ),
-          const SizedBox(
-            height: 250,
-            width: double.infinity,
-            child: Card(),
-          ),
+          if (post.postImgUrl != null)
+            SizedBox(
+              height: 250,
+              width: double.infinity,
+              child: Card(
+                clipBehavior: Clip.antiAliasWithSaveLayer,
+                child: Image.network(
+                  post.postImgUrl!,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            ),
           Row(
             children: [
               const Spacer(),
