@@ -38,8 +38,8 @@ class PostCtrl extends Cubit<PostStates> {
     final newPost = PostModel(
       postId: newId,
       content: contentCtrl.text,
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
+      createdAt: newId,
+      updatedAt: newId,
       user: user,
       postImgUrl: imgUrl,
     );
@@ -66,7 +66,7 @@ class PostCtrl extends Cubit<PostStates> {
       postId: editedPost!.postId,
       content: contentCtrl.text,
       createdAt: editedPost!.createdAt,
-      updatedAt: DateTime.now(),
+      updatedAt: DateTime.now().toIso8601String(),
       user: user,
       postImgUrl: imgUrl,
     );
@@ -98,11 +98,17 @@ class PostCtrl extends Cubit<PostStates> {
     emit(PostLoadingState());
     _database.collection("Mohamed_Posts").get().then((v) {
       posts.clear();
+      selectedImage = null;
+      contentCtrl.clear();
+      imgUrl = null;
       for (var doc in v.docs) {
         posts.add(PostModel.fromJson(doc.data()));
+        print(doc.data());
       }
       emit(PostSuccessState());
-    }).catchError((error) {});
+    }).catchError((error) {
+      emit(PostErrorState());
+    });
   }
 
   void deletePost(String postId) {
@@ -139,6 +145,39 @@ class PostCtrl extends Cubit<PostStates> {
     contentCtrl.text = post.content;
     imgUrl = post.postImgUrl;
     emit(EditPostState());
+  }
+
+  void likeUnLike({
+    required String postId,
+    required UserModel user,
+    required bool isLiked,
+  }) {
+    if (isLiked) {
+      _database
+          .collection("Mohamed_Posts")
+          .doc(postId)
+          .collection("likes")
+          .doc(user.id)
+          .delete();
+    } else {
+      _database
+          .collection("Mohamed_Posts")
+          .doc(postId)
+          .collection("likes")
+          .doc(user.id)
+          .set(user.toJson());
+    }
+  }
+
+  Stream<List<UserModel>> getLikes(String postId) {
+    return _database
+        .collection("Mohamed_Posts")
+        .doc(postId)
+        .collection("likes")
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
+    }).asBroadcastStream();
   }
 }
 

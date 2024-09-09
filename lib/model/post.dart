@@ -3,8 +3,8 @@ import 'package:social_3c/model/user.dart';
 class PostModel {
   final String postId;
   final String content;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final String createdAt;
+  final String updatedAt;
   final UserModel user;
   final String? postImgUrl;
 
@@ -32,8 +32,8 @@ class PostModel {
     return PostModel(
       postId: json['postId'],
       content: json['content'],
-      createdAt: json['createdAt'],
-      updatedAt: json['updatedAt'],
+      createdAt: json['createdAt'].toString(),
+      updatedAt: json['updatedAt'].toString(),
       user: UserModel.fromMap(json['user']),
       postImgUrl: json['postImgUrl'],
     );

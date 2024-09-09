@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_3c/ctrl/auth_ctrl.dart';
 import 'package:social_3c/ctrl/layout_ctrl.dart';
 import 'package:social_3c/ctrl/post_ctrl.dart';
+import 'package:social_3c/model/user.dart';
 
 import '../../../model/post.dart';
 
@@ -12,6 +14,7 @@ class PostItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final myData = context.read<AuthCtrl>().myData;
     return Container(
       margin: const EdgeInsets.all(10),
       padding: const EdgeInsets.all(8),
@@ -99,14 +102,78 @@ class PostItem extends StatelessWidget {
           Row(
             children: [
               const Spacer(),
-              IconButton(
-                onPressed: () {},
-                icon: const Icon(
-                  Icons.favorite,
-                  color: Colors.red,
-                ),
-              ),
-              const Text("Love"),
+              StreamBuilder<List<UserModel>>(
+                  stream: context.read<PostCtrl>().getLikes(post.postId),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.active) {
+                      final likes = snapshot.data;
+
+                      if (likes == null || likes.isEmpty) {
+                        return Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                context.read<PostCtrl>().likeUnLike(
+                                      postId: post.postId,
+                                      user: myData!,
+                                      isLiked: false,
+                                    );
+                              },
+                              icon: const Icon(
+                                Icons.favorite_border,
+                                color: Colors.red,
+                              ),
+                            ),
+                            const Text("Love"),
+                          ],
+                        );
+                      }
+                      bool isLiked = false;
+
+                      for (UserModel user in likes) {
+                        if (user.id == myData!.id) {
+                          isLiked = true;
+                          break;
+                        }
+                      }
+                      return Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {
+                              context.read<PostCtrl>().likeUnLike(
+                                    postId: post.postId,
+                                    user: myData!,
+                                    isLiked: isLiked,
+                                  );
+                            },
+                            icon: Icon(
+                              isLiked ? Icons.favorite : Icons.favorite_border,
+                              color: Colors.red,
+                            ),
+                          ),
+                          Text("${likes.length} Love"),
+                        ],
+                      );
+                    }
+                    return Row(
+                      children: [
+                        IconButton(
+                          onPressed: () {
+                            context.read<PostCtrl>().likeUnLike(
+                                  postId: post.postId,
+                                  user: myData!,
+                                  isLiked: false,
+                                );
+                          },
+                          icon: const Icon(
+                            Icons.favorite_border,
+                            color: Colors.red,
+                          ),
+                        ),
+                        const Text("Love"),
+                      ],
+                    );
+                  }),
               const Spacer(
                 flex: 5,
               ),
