@@ -15,4 +15,3 @@ void main() async {
   runApp(const MyApp());
 }
 
-//todo like comment search firebase chat ui

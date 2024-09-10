@@ -140,18 +140,16 @@ class PostCtrl extends Cubit<PostStates> {
         .doc(post!.postId)
         .update(updatedPost.toMap())
         .then((value) {
-          AppToast.success("Post updated successfully");
-          getPosts();
-          contentCtrl.clear();
-          selectedMedia = null;
-          imgUrl = null;
-          post = null;
-        })
-        .catchError((error) {})
-        .catchError((error) {
-          AppToast.error("Error updating post: ${error.message}");
-          emit(CreatePostErrorState());
-        });
+      AppToast.success("Post updated successfully");
+      getPosts();
+      contentCtrl.clear();
+      selectedMedia = null;
+      imgUrl = null;
+      post = null;
+    }).catchError((error) {
+      AppToast.error("Error updating post: ${error.message}");
+      emit(CreatePostErrorState());
+    });
   }
 
   PostModel? post;
@@ -168,6 +166,40 @@ class PostCtrl extends Cubit<PostStates> {
     imgUrl = null;
     post = null;
     emit(EditPostState());
+  }
+
+  //like
+
+  void likeUnlike({
+    required bool isLiked,
+    required UserModel user,
+    required String postId,
+  }) {
+    if (isLiked) {
+      _fireStore
+          .collection("MYM_Posts")
+          .doc(postId)
+          .collection("likes")
+          .doc(user.id)
+          .delete();
+    } else {
+      _fireStore
+          .collection("MYM_Posts")
+          .doc(postId)
+          .collection("likes")
+          .doc(user.id)
+          .set(user.toJson());
+    }
+  }
+
+  Stream<List<UserModel>> getLikes(String postId) {
+    return _fireStore
+        .collection("MYM_Posts")
+        .doc(postId)
+        .collection("likes")
+        .snapshots()
+        .map((snapshot) =>
+            snapshot.docs.map((doc) => UserModel.fromMap(doc.data())).toList());
   }
 }
 

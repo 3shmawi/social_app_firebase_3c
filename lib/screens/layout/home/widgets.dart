@@ -1,8 +1,11 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:social_3c/controller/auth_ctrl.dart';
 import 'package:social_3c/controller/layout_ctrl.dart';
 import 'package:social_3c/controller/post_ctrl.dart';
 import 'package:social_3c/model/post.dart';
+import 'package:social_3c/model/user.dart';
 import 'package:social_3c/services/local_storage.dart';
 
 import '../../_resources/assets_path/icon_broken.dart';
@@ -15,6 +18,7 @@ class PostCardItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final myId = CacheHelper.getData(key: "myId");
+    final user = context.read<AuthCtrl>().myData;
     return Card(
       elevation: 5,
       margin: const EdgeInsets.all(10),
@@ -89,11 +93,66 @@ class PostCardItem extends StatelessWidget {
             const Divider(color: Colors.green),
             Row(
               children: [
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(IconBroken.heart),
-                ),
-                const Text("Love"),
+                StreamBuilder<List<UserModel>>(
+                    stream: context.read<PostCtrl>().getLikes(post.postId),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.active) {
+                        final likes = snapshot.data;
+                        if (likes == null || likes.isEmpty) {
+                          return Row(
+                            children: [
+                              IconButton(
+                                onPressed: () {
+                                  context.read<PostCtrl>().likeUnlike(
+                                        postId: post.postId,
+                                        user: user!,
+                                        isLiked: false,
+                                      );
+                                },
+                                icon: const Icon(IconBroken.heart),
+                              ),
+                              const Text("Love"),
+                            ],
+                          );
+                        }
+                        bool isLiked = false;
+                        for (final like in likes) {
+                          if (like.id == user!.id) {
+                            isLiked = true;
+                            break;
+                          }
+                        }
+                        return Row(
+                          children: [
+                            IconButton(
+                              onPressed: () {
+                                context.read<PostCtrl>().likeUnlike(
+                                      postId: post.postId,
+                                      user: user!,
+                                      isLiked: isLiked,
+                                    );
+                              },
+                              icon: Icon(
+                                isLiked
+                                    ? CupertinoIcons.heart_fill
+                                    : IconBroken.heart,
+                                color: Colors.red,
+                              ),
+                            ),
+                            Text("${likes.length} Love"),
+                          ],
+                        );
+                      }
+                      return Row(
+                        children: [
+                          IconButton(
+                            onPressed: () {},
+                            icon: const Icon(IconBroken.heart),
+                          ),
+                          const Text("Love"),
+                        ],
+                      );
+                    }),
                 const Spacer(),
                 IconButton(
                   onPressed: () {},
