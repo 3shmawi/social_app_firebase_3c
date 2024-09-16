@@ -29,6 +29,10 @@ class PostCtrl extends Cubit<PostStates> {
   }
 
   void _createPost(UserModel user) async {
+    if (contentCtrl.text.isEmpty) {
+      AppToast.error("Please enter a content");
+      return;
+    }
     emit(PostLoadingState());
     final newId = DateTime.now().toIso8601String();
 
@@ -57,6 +61,10 @@ class PostCtrl extends Cubit<PostStates> {
   }
 
   void _editPost(UserModel user) async {
+    if (contentCtrl.text.isEmpty) {
+      AppToast.error("Please enter a content");
+      return;
+    }
     emit(PostLoadingState());
 
     if (selectedImage != null) {
@@ -96,8 +104,13 @@ class PostCtrl extends Cubit<PostStates> {
       return;
     }
     emit(PostLoadingState());
-    _database.collection("Mohamed_Posts").get().then((v) {
+    _database
+        .collection("Mohamed_Posts")
+        .orderBy("updatedAt", descending: true)
+        .get()
+        .then((v) {
       posts.clear();
+      editedPost = null;
       selectedImage = null;
       contentCtrl.clear();
       imgUrl = null;
@@ -130,8 +143,8 @@ class PostCtrl extends Cubit<PostStates> {
     final task = ref.putFile(file);
 
     final snapshot = await task.whenComplete(() => {});
-    final downloadUrl = snapshot.ref.getDownloadURL();
-    return downloadUrl.toString();
+    final downloadUrl = await snapshot.ref.getDownloadURL();
+    return downloadUrl;
   }
 
   void clearSelectedImg() {
@@ -178,6 +191,129 @@ class PostCtrl extends Cubit<PostStates> {
         .map((snapshot) {
       return snapshot.docs.map((doc) => UserModel.fromMap(doc.data())).toList();
     }).asBroadcastStream();
+  }
+
+  //comments
+  void createOrEditComment(String postId, UserModel user) {
+    if (editedPost == null) {
+      _createComment(postId, user);
+    } else {
+      _editComment(postId, user);
+    }
+  }
+
+  void _createComment(String postId, UserModel user) async {
+    if (contentCtrl.text.isEmpty) {
+      AppToast.error("Please enter a comment");
+      return;
+    }
+    emit(PostLoadingState());
+    final newId = DateTime.now().toIso8601String();
+
+    if (selectedImage != null) {
+      imgUrl = await _uploadImg(File(selectedImage!.path));
+    }
+    final newPost = PostModel(
+      postId: newId,
+      content: contentCtrl.text,
+      createdAt: newId,
+      updatedAt: newId,
+      user: user,
+      postImgUrl: imgUrl,
+    );
+
+    _database
+        .collection("Mohamed_Posts")
+        .doc(postId)
+        .collection("comments")
+        .doc(newId)
+        .set(newPost.toJson())
+        .then((v) {
+      editedPost = null;
+      selectedImage = null;
+      contentCtrl.clear();
+      imgUrl = null;
+      AppToast.success("Created new comment successfully");
+      fetchComments(postId);
+    }).catchError((error) {
+      emit(PostErrorState());
+    });
+  }
+
+  void _editComment(String postId, UserModel user) async {
+    if (contentCtrl.text.isEmpty) {
+      AppToast.error("Please enter a comment");
+      return;
+    }
+    emit(PostLoadingState());
+
+    if (selectedImage != null) {
+      imgUrl = await _uploadImg(File(selectedImage!.path));
+    }
+    final newPost = PostModel(
+      postId: editedPost!.postId,
+      content: contentCtrl.text,
+      createdAt: editedPost!.createdAt,
+      updatedAt: DateTime.now().toIso8601String(),
+      user: user,
+      postImgUrl: imgUrl,
+    );
+
+    _database
+        .collection("Mohamed_Posts")
+        .doc(postId)
+        .collection("comments")
+        .doc(newPost.postId)
+        .update(newPost.toJson())
+        .then((v) {
+      AppToast.success("Edited the comment successfully");
+
+      editedPost = null;
+      selectedImage = null;
+      contentCtrl.clear();
+      imgUrl = null;
+      fetchComments(postId);
+    }).catchError((error) {
+      emit(PostErrorState());
+    });
+  }
+
+  List<PostModel> comments = [];
+
+  void fetchComments(String postId) {
+    emit(PostLoadingState());
+    _database
+        .collection("Mohamed_Posts")
+        .doc(postId)
+        .collection("comments")
+        .orderBy("updatedAt", descending: true)
+        .get()
+        .then((v) {
+      comments.clear();
+      editedPost = null;
+      selectedImage = null;
+      contentCtrl.clear();
+      imgUrl = null;
+      for (var doc in v.docs) {
+        comments.add(PostModel.fromJson(doc.data()));
+      }
+      emit(PostSuccessState());
+    }).catchError((error) {
+      emit(PostErrorState());
+    });
+  }
+
+  void deleteComment(String postId, String commentId) {
+    _database
+        .collection("Mohamed_Posts")
+        .doc(postId)
+        .collection("comments")
+        .doc(commentId)
+        .delete()
+        .then((v) {
+      AppToast.success("Deleted the comment successfully");
+      fetchComments(postId);
+    });
   }
 }
 

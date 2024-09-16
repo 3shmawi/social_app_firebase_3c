@@ -20,6 +20,7 @@ class UploadView extends StatelessWidget {
           child: Column(
             children: [
               TextField(
+                controller: cubit.contentCtrl,
                 maxLines: 5,
                 minLines: 5,
                 decoration: InputDecoration(
