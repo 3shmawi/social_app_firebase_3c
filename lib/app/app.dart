@@ -6,6 +6,8 @@ import 'package:social_3c/controller/layout_ctrl.dart';
 import 'package:social_3c/controller/post_ctrl.dart';
 import 'package:social_3c/screens/splash.dart';
 
+import '../revision/view.dart';
+
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -20,7 +22,7 @@ class MyApp extends StatelessWidget {
       ],
       child: const MaterialApp(
         debugShowCheckedModeBanner: false,
-        home: SplashPage(),
+        home: RevisionView(),
       ),
     );
   }
