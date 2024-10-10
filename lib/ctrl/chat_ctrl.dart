@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:social_3c/model/chat.dart';
+import 'package:social_3c/model/user.dart';
 import 'package:social_3c/services/local_database.dart';
 
 class ChatCtrl {
@@ -53,5 +54,12 @@ class ChatCtrl {
         .collection("users")
         .doc(myId)
         .update({"last_seen": DateTime.now().toIso8601String()});
+  }
+
+  Future<List<UserModel>> getAllUsers() async {
+    return (await _database.collection("users").get())
+        .docs
+        .map((doc) => UserModel.fromMap(doc.data()))
+        .toList();
   }
 }

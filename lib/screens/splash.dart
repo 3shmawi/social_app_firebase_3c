@@ -51,3 +51,5 @@ class _SplashViewState extends State<SplashView> {
     );
   }
 }
+//Text Icon  Container Expanded Row Column  Wrap
+//ListView  Spacer  Divider  Transform
